@@ -27,6 +27,14 @@ const FEE_MODE_NONE: u8 = 0; // No fee applied
 const FEE_MODE_EARLY_TRADE: u8 = 1; // Early trade fee applied
 const FEE_MODE_TIER_BASED: u8 = 2; // Volume-based tier fee applied
 
+// --- Constants ---
+pub const SECONDS_PER_HOUR: u64 = 3600;
+pub const SECONDS_PER_DAY: u64 = 86400;
+pub const SECONDS_PER_WEEK: u64 = 604800;
+pub const MINIMUM_FEE_BPS: u64 = 1; // 0.01%
+pub const MAXIMUM_FEE_BPS: u64 = 1000; // 10%
+pub const MINIMUM_FEE: u64 = 1; // Minimum fee in lamports
+
 #[program]
 pub mod hoe_dex_protection {
     use super::*;
@@ -639,7 +647,7 @@ pub mod hoe_dex_protection {
         let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
 
-        // Validate pending update exists and timelock has expired
+        // --- Validate Update ---
         let pending_update = state.pending_update.take()
             .ok_or_else(|| {
                 error!(ErrorCode::NoPendingUpdate, "No pending update found")
@@ -652,7 +660,7 @@ pub mod hoe_dex_protection {
             pending_update.scheduled_time
         );
 
-        // Apply trade settings updates
+        // --- Apply Trade Settings ---
         if let Some(settings) = pending_update.trade_settings {
             state.trade_settings.early_trade_fee_bps = settings.early_trade_fee_bps;
             state.trade_settings.early_trade_window_seconds = settings.early_trade_window_seconds;
@@ -672,7 +680,7 @@ pub mod hoe_dex_protection {
             });
         }
 
-        // Apply protection settings updates
+        // --- Apply Protection Settings ---
         if let Some(settings) = pending_update.protection_settings {
             state.volume.max_daily = settings.max_daily_volume;
             state.protection.max_price_impact_bps = settings.max_price_impact_bps;
@@ -696,7 +704,7 @@ pub mod hoe_dex_protection {
             });
         }
 
-        // Apply fee settings updates
+        // --- Apply Fee Settings ---
         if let Some(settings) = pending_update.fee_settings {
             if let Some(fee_tiers) = settings.fee_tiers {
                 state.fee_tiers = fee_tiers;
@@ -712,7 +720,7 @@ pub mod hoe_dex_protection {
             });
         }
 
-        // Apply state settings updates
+        // --- Apply State Settings ---
         if let Some(settings) = pending_update.state_settings {
             state.is_paused = settings.is_paused;
             state.is_emergency_paused = settings.is_emergency_paused;
@@ -1047,6 +1055,9 @@ mod contexts {
         pub pool_state: Account<'info, PoolState>,
         #[account(mut)]
         pub admin: Signer<'info>,
+        #[account(
+            constraint = token_mint.key() == pool_state.token_mint
+        )]
         pub token_mint: Account<'info, Mint>,
         pub system_program: Program<'info, System>,
         pub token_program: Program<'info, Token>,
@@ -1095,6 +1106,10 @@ mod contexts {
             bump
         )]
         pub pool_authority: AccountInfo<'info>,
+        #[account(
+            constraint = token_mint.key() == pool_state.token_mint
+        )]
+        pub token_mint: Account<'info, Mint>,
         pub token_program: Program<'info, Token>,
     }
 
@@ -1244,6 +1259,7 @@ pub struct PoolState {
     pub fee_tiers_locked: bool,
     pub default_fee_bps: Option<u64>,
     pub trader_blacklist: Vec<Pubkey>,
+    pub instruction_counter: u64, // For replay protection
 }
 
 impl PoolState {
@@ -1566,53 +1582,37 @@ impl PoolState {
     }
 
     pub fn validate_fee_tiers(&self, fee_tiers: &[FeeTier]) -> Result<()> {
-        require!(
-            fee_tiers.len() <= MAX_FEE_TIERS,
-            ErrorCode::TooManyFeeTiers,
-            "Fee tiers count {} exceeds maximum allowed {}", 
-            fee_tiers.len(), 
-            MAX_FEE_TIERS
-        );
-
-        // Validate each tier
-        for (i, tier) in fee_tiers.iter().enumerate() {
-            require!(
-                tier.volume_threshold > 0,
-                ErrorCode::InvalidFeeTier,
-                "Fee tier {} has invalid volume threshold: {}", 
-                i, 
+        // Check uniqueness of volume thresholds
+        let mut prev_threshold = 0;
+        for tier in fee_tiers {
+            validate_condition!(
+                tier.volume_threshold > prev_threshold,
+                ErrorCode::DuplicateFeeTierThreshold,
+                "Fee tier threshold {} not strictly increasing",
                 tier.volume_threshold
             );
-            require!(
-                tier.fee_bps > 0,
-                ErrorCode::InvalidFeeTier,
-                "Fee tier {} has invalid fee basis points: {}", 
-                i, 
-                tier.fee_bps
-            );
-
-            // Check for strictly increasing thresholds
-            if i > 0 {
-                require!(
-                    tier.volume_threshold > fee_tiers[i - 1].volume_threshold,
-                    ErrorCode::InvalidFeeTier,
-                    "Fee tier {} threshold {} must be greater than previous tier {}",
-                    i,
-                    tier.volume_threshold,
-                    fee_tiers[i - 1].volume_threshold
-                );
-                require!(
-                    tier.fee_bps <= fee_tiers[i - 1].fee_bps,
-                    ErrorCode::InvalidFeeTier,
-                    "Fee tier {} fee {} must be less than or equal to previous tier {}",
-                    i,
-                    tier.fee_bps,
-                    fee_tiers[i - 1].fee_bps
-                );
-            }
+            self.validate_fee_bounds(tier.fee_bps)?;
+            prev_threshold = tier.volume_threshold;
         }
-
         Ok(())
+    }
+
+    pub fn validate_fee_bounds(&self, fee_bps: u64) -> Result<()> {
+        validate_condition!(
+            fee_bps >= MINIMUM_FEE_BPS && fee_bps <= MAXIMUM_FEE_BPS,
+            ErrorCode::FeeTooLow,
+            "Fee {} bps outside allowed range [{}, {}]",
+            fee_bps,
+            MINIMUM_FEE_BPS,
+            MAXIMUM_FEE_BPS
+        );
+        Ok(())
+    }
+
+    pub fn is_address_forbidden(&self, address: &Pubkey) -> bool {
+        address == &self.admin || 
+        address == &self.emergency_admin || 
+        self.trader_blacklist.contains(address)
     }
 }
 
@@ -1666,42 +1666,63 @@ pub struct FeeTier {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct PendingUpdate {
+    /// When the update should be applied
     pub scheduled_time: u64,
+    /// Updates to trade-related parameters
     pub trade_settings: Option<TradeSettingsUpdate>,
+    /// Updates to protection mechanisms
     pub protection_settings: Option<ProtectionSettingsUpdate>,
+    /// Updates to fee structure
     pub fee_settings: Option<FeeSettingsUpdate>,
+    /// Updates to pool state
     pub state_settings: Option<StateSettingsUpdate>,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TradeSettingsUpdate {
+    /// Fee in basis points for early trades
     pub early_trade_fee_bps: u64,
+    /// Duration in seconds for early trade window
     pub early_trade_window_seconds: u64,
+    /// Maximum trade size as basis points of pool
     pub max_trade_size_bps: u64,
+    /// Minimum trade size in lamports
     pub min_trade_size: u64,
+    /// Cooldown period between trades in seconds
     pub cooldown_seconds: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct ProtectionSettingsUpdate {
+    /// Maximum daily trading volume
     pub max_daily_volume: u64,
+    /// Maximum price impact in basis points
     pub max_price_impact_bps: u64,
+    /// Volume threshold for circuit breaker
     pub circuit_breaker_threshold: u64,
+    /// Time window for circuit breaker in seconds
     pub circuit_breaker_window: u64,
+    /// Cooldown period after circuit breaker in seconds
     pub circuit_breaker_cooldown: u64,
+    /// Time window for rate limiting in seconds
     pub rate_limit_window: u64,
+    /// Maximum number of trades in rate limit window
     pub rate_limit_max: u32,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct FeeSettingsUpdate {
+    /// New fee tiers (if any)
     pub fee_tiers: Vec<FeeTier>,
+    /// Whether fee tiers should be locked
     pub fee_tiers_locked: bool,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct StateSettingsUpdate {
+    /// Whether the pool should be paused
     pub is_paused: bool,
+    /// Whether the pool should be emergency paused
     pub is_emergency_paused: bool,
 }
 
@@ -2056,8 +2077,6 @@ pub enum ErrorCode {
     TokenAccountDelegated,
     #[msg("Invalid pool authority: PDA derivation failed")]
     InvalidPoolAuthority,
-    #[msg("Invalid timestamp: must be non-negative")]
-    InvalidTimestamp,
     #[msg("Balance validation failed: token transfer amounts mismatch")]
     InvalidBalance,
     #[msg("Insufficient pool balance: below minimum trade size")]
@@ -2068,8 +2087,6 @@ pub enum ErrorCode {
     SnipeProtectionActive,
     #[msg("Trader is blacklisted: trading not allowed")]
     TraderBlacklisted,
-    #[msg("Trade size too small: below minimum threshold")]
-    TradeTooSmall,
     #[msg("Rate limit exceeded: too many trades in window")]
     RateLimitExceeded,
     #[msg("Circuit breaker cooldown active: must wait before reset")]
@@ -2148,6 +2165,35 @@ pub enum ErrorCode {
     PoolNotPaused,
     #[msg("Account too large: exceeds Solana's maximum size")]
     AccountTooLarge,
+}
+
+// --- Event Definitions ---
+#[event]
+pub struct TradeExecutionFailed {
+    pub pool: Pubkey,
+    pub buyer: Pubkey,
+    pub amount_in: u64,
+    pub reason: String,
+    pub ts: i64,
+}
+
+#[event]
+pub struct LiquidityOperationFailed {
+    pub pool: Pubkey,
+    pub admin: Pubkey,
+    pub operation: String,
+    pub amount: u64,
+    pub reason: String,
+    pub ts: i64,
+}
+
+#[event]
+pub struct AdminOperationFailed {
+    pub pool: Pubkey,
+    pub admin: Pubkey,
+    pub operation: String,
+    pub reason: String,
+    pub ts: i64,
 }
 
 // Helper function for fee calculation
@@ -2653,6 +2699,9 @@ pub trait ValidationHelpers {
     fn check_pool_authority(&self, authority: &Pubkey, program_id: &Pubkey) -> Result<()>;
     fn check_token_mint(&self, mint: &Account<Mint>) -> Result<()>;
     fn check_token_account(&self, account: &Account<TokenAccount>, mint: &Pubkey) -> Result<()>;
+    fn check_circuit_breaker(&self, current_time: u64) -> Result<()>;
+    fn check_rate_limit(&self, current_time: u64) -> Result<()>;
+    fn check_volume_limit(&self, amount: u64) -> Result<()>;
 }
 
 impl ValidationHelpers for PoolState {
@@ -2679,6 +2728,22 @@ impl ValidationHelpers for PoolState {
         validate_condition!(!account.is_delegated(), ErrorCode::TokenAccountDelegated);
         Ok(())
     }
+
+    fn check_circuit_breaker(&self, current_time: u64) -> Result<()> {
+        validate_condition!(current_time >= self.circuit_breaker.last_trigger + self.circuit_breaker.cooldown, ErrorCode::CircuitBreakerCooldown);
+        Ok(())
+    }
+
+    fn check_rate_limit(&self, current_time: u64) -> Result<()> {
+        validate_condition!(current_time < self.rate_limit.last_reset + self.rate_limit.window, ErrorCode::RateLimitExceeded);
+        validate_condition!(self.rate_limit.count < self.rate_limit.max, ErrorCode::RateLimitExceeded);
+        Ok(())
+    }
+
+    fn check_volume_limit(&self, amount: u64) -> Result<()> {
+        validate_condition!(self.volume.volume_24h + amount <= self.volume.max_daily, ErrorCode::DailyVolumeLimitExceeded);
+        Ok(())
+    }
 }
 
 // Constants for space calculation
@@ -2703,15 +2768,15 @@ pub enum Operation {
 impl Operation {
     pub fn as_str(&self) -> &'static str {
         match self {
-            Operation::ExecuteTrade => "execute_trade",
-            Operation::AddLiquidity => "add_liquidity",
-            Operation::RemoveLiquidity => "remove_liquidity",
-            Operation::BlacklistTrader => "blacklist_trader",
-            Operation::RemoveFromBlacklist => "remove_from_blacklist",
-            Operation::WithdrawFees => "withdraw_fees",
-            Operation::UpdateParameters => "update_parameters",
-            Operation::EmergencyPause => "emergency_pause",
-            Operation::EmergencyResume => "emergency_resume",
+            Operation::ExecuteTrade => "ExecuteTrade",
+            Operation::AddLiquidity => "AddLiquidity",
+            Operation::RemoveLiquidity => "RemoveLiquidity",
+            Operation::BlacklistTrader => "BlacklistTrader",
+            Operation::RemoveFromBlacklist => "RemoveFromBlacklist",
+            Operation::WithdrawFees => "WithdrawFees",
+            Operation::UpdateParameters => "UpdateParameters",
+            Operation::EmergencyPause => "EmergencyPause",
+            Operation::EmergencyResume => "EmergencyResume",
         }
     }
 }
@@ -2950,4 +3015,80 @@ pub struct StateSettingsUpdated {
     pub is_paused: bool,
     pub is_emergency_paused: bool,
     pub ts: i64,
+}
+
+// --- Cooldowns ---
+pub const EMERGENCY_TIMELOCK_SECONDS: u64 = 3600; // 1 hour
+pub const PARAMETER_UPDATE_TIMELOCK: u64 = 86400; // 24 hours
+pub const ADMIN_UPDATE_COOLDOWN: u64 = 86400; // 24 hours
+
+// --- Limits ---
+pub const MAX_FEE_TIERS: usize = 100;
+pub const MAX_BLACKLIST_SIZE: usize = 1000;
+pub const MAX_PENDING_UPDATE_SIZE: usize = std::mem::size_of::<PendingUpdate>();
+
+// --- Fee Mode Enum ---
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FeeMode {
+    None = 0,
+    EarlyTrade = 1,
+    TierBased = 2,
+}
+
+impl FeeMode {
+    pub fn as_u8(&self) -> u8 {
+        *self as u8
+    }
+
+    pub fn from_u8(mode: u8) -> Option<Self> {
+        match mode {
+            0 => Some(FeeMode::None),
+            1 => Some(FeeMode::EarlyTrade),
+            2 => Some(FeeMode::TierBased),
+            _ => None,
+        }
+    }
+}
+
+// --- Operation Enum ---
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Operation {
+    ExecuteTrade,
+    AddLiquidity,
+    RemoveLiquidity,
+    BlacklistTrader,
+    RemoveFromBlacklist,
+    WithdrawFees,
+    UpdateParameters,
+    EmergencyPause,
+    EmergencyResume,
+}
+
+impl Operation {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Operation::ExecuteTrade => "ExecuteTrade",
+            Operation::AddLiquidity => "AddLiquidity",
+            Operation::RemoveLiquidity => "RemoveLiquidity",
+            Operation::BlacklistTrader => "BlacklistTrader",
+            Operation::RemoveFromBlacklist => "RemoveFromBlacklist",
+            Operation::WithdrawFees => "WithdrawFees",
+            Operation::UpdateParameters => "UpdateParameters",
+            Operation::EmergencyPause => "EmergencyPause",
+            Operation::EmergencyResume => "EmergencyResume",
+        }
+    }
+}
+
+// --- Blacklist Operation Enum ---
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BlacklistOperation {
+    Add,
+    Remove,
+}
+
+// --- Helper Functions ---
+pub fn current_unix_ts() -> Result<u64> {
+    Ok(Clock::get()?.unix_timestamp as u64)
 }
