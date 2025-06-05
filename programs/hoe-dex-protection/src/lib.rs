@@ -128,61 +128,40 @@ pub mod hoe_dex_protection {
     /// - Transfers: tokens from admin to pool
     /// - Updates: pool state with new liquidity and timestamps
     pub fn add_liquidity(ctx: Context<contexts::AddLiquidity>, amount: u64) -> Result<()> {
-        require!(
-            ctx.accounts.token_program.key() == token::ID,
-            ErrorCode::InvalidTokenProgram
-        );
-        require!(amount > 0, ErrorCode::InvalidAmount);
-        let pool_state = &mut ctx.accounts.pool_state;
-        require!(pool_state.pool_start_time == 0, ErrorCode::PoolAlreadyStarted);
-        require!(!pool_state.is_paused, ErrorCode::PoolPaused);
-        require!(
-            ctx.accounts.admin_token_account.owner == ctx.accounts.admin.key(),
-            ErrorCode::InvalidTokenAccount
-        );
-        require!(
-            ctx.accounts.pool_token_account.owner == ctx.accounts.pool_authority.key(),
-            ErrorCode::InvalidTokenAccount
-        );
-        require!(ctx.accounts.admin_token_account.delegate.is_none(), ErrorCode::TokenAccountDelegated);
-        require!(ctx.accounts.pool_token_account.delegate.is_none(), ErrorCode::TokenAccountDelegated);
-        let (pool_authority, _) = derive_pool_authority(&ctx.accounts.pool_state.key(), &program_id);
-        require!(
-            pool_authority == ctx.accounts.pool_authority.key(),
-            ErrorCode::InvalidPoolAuthority
-        );
-        let current_time = Clock::get()?.unix_timestamp;
-        require!(current_time >= 0, ErrorCode::InvalidTimestamp);
-        let initial_admin_balance = ctx.accounts.admin_token_account.amount;
-        let initial_pool_balance = ctx.accounts.pool_token_account.amount;
-        pool_state.pool_start_time = current_time as u64;
-        pool_state.total_liquidity = amount;
-        pool_state.last_update = current_time as u64;
-        let cpi_accounts = token::Transfer {
-            from: ctx.accounts.admin_token_account.to_account_info(),
-            to: ctx.accounts.pool_token_account.to_account_info(),
-            authority: ctx.accounts.admin.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        token::transfer(CpiContext::new(cpi_program, cpi_accounts), amount)?;
-        require!(
-            ctx.accounts.admin_token_account.amount == initial_admin_balance.checked_sub(amount).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-        require!(
-            ctx.accounts.pool_token_account.amount == initial_pool_balance.checked_add(amount).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-        require!(
-            ctx.accounts.pool_token_account.amount >= amount,
-            ErrorCode::InsufficientPoolBalance
-        );
-        emit!(LiquidityAdded {
-            pool: pool_state.key(),
-            admin_pubkey: pool_state.admin,
+        let state = &mut ctx.accounts.pool_state;
+        let current_time = Clock::get()?.unix_timestamp as u64;
+
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+
+        // Validate token accounts
+        state.check_token_mint(&ctx.accounts.token_mint)?;
+        state.check_token_account(&ctx.accounts.admin_token_account, &state.token_mint)?;
+        state.check_token_account(&ctx.accounts.pool_token_account, &state.token_mint)?;
+
+        // Validate amount
+        validate_condition!(amount > 0, ErrorCode::InvalidAmount);
+
+        // Transfer tokens from admin to pool
+        let cpi_ctx = with_pool_signer(
+            &crate::ID,
+            state,
+            &[ctx.accounts.admin_token_account.to_account_info(), ctx.accounts.pool_token_account.to_account_info()],
+        )?;
+
+        token::transfer(
+            cpi_ctx,
             amount,
-            ts: current_time as i64,
-        });
+        )?;
+
+        // Update pool state
+        state.total_liquidity = state.total_liquidity.checked_add(amount)
+            .ok_or(ErrorCode::Overflow)?;
+        state.last_update = current_time;
+
+        // Emit event
+        state.emit_liquidity_added(&ctx.accounts.admin.key(), amount, current_time as i64);
+
         Ok(())
     }
 
@@ -193,86 +172,39 @@ pub mod hoe_dex_protection {
     /// - Transfers: tokens from pool to admin
     /// - Updates: pool state with reduced liquidity and timestamps
     pub fn remove_liquidity(ctx: Context<contexts::AdminAction>, amount: u64) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
-        
-        // Add reentrancy protection
-        let _guard = ReentrancyGuard::new(pool_state)?;
-        
-        // FIX: Corrected validation and transfer logic to ensure proper authority checks and balance updates.
-        require!(
-            ctx.accounts.token_program.key() == token::ID,
-            ErrorCode::InvalidTokenProgram
-        );
-        require!(ctx.accounts.admin.key() == pool_state.admin, ErrorCode::Unauthorized);
-        require!(!pool_state.is_paused, ErrorCode::PoolPaused);
-        require!(!pool_state.is_emergency_paused, ErrorCode::EmergencyPaused);
-        require!(pool_state.total_liquidity >= amount, ErrorCode::InsufficientLiquidity);
-        require!(amount > 0, ErrorCode::InvalidAmount);
-        require!(
-            ctx.accounts.admin_token_account.owner == ctx.accounts.admin.key(),
-            ErrorCode::InvalidTokenAccount
-        );
-        // FIX: Corrected pool token account owner check to use pool_authority.
-        require!(
-            ctx.accounts.pool_token_account.owner == ctx.accounts.pool_authority.key(),
-            ErrorCode::InvalidTokenAccount
-        );
-        require!(ctx.accounts.admin_token_account.delegate.is_none(), ErrorCode::TokenAccountDelegated);
-        require!(ctx.accounts.pool_token_account.delegate.is_none(), ErrorCode::TokenAccountDelegated);
-        // FIX: Added proper pool authority derivation and validation.
-        let (pool_authority, _) = derive_pool_authority(&ctx.accounts.pool_state.key(), &program_id);
-        require!(
-            pool_authority == ctx.accounts.pool_authority.key(),
-            ErrorCode::InvalidPoolAuthority
-        );
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        require!(current_time >= 0, ErrorCode::InvalidTimestamp);
-        let initial_pool_balance = ctx.accounts.pool_token_account.amount;
-        let initial_admin_balance = ctx.accounts.admin_token_account.amount;
-        pool_state.total_liquidity = pool_state.total_liquidity.checked_sub(amount).ok_or(ErrorCode::Overflow)?;
-        pool_state.last_update = current_time as i64;
-        let cpi_accounts = token::Transfer {
-            from: ctx.accounts.pool_token_account.to_account_info(),
-            to: ctx.accounts.admin_token_account.to_account_info(),
-            authority: ctx.accounts.pool_authority.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        // FIX: Corrected signer seeds to use "pool_authority" instead of "pool_state".
+
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+
+        // Validate amount
+        validate_condition!(amount > 0, ErrorCode::InvalidAmount);
+        validate_condition!(
+            amount <= state.total_liquidity,
+            ErrorCode::InsufficientLiquidity
+        );
+
+        // Transfer tokens from pool to admin
+        let cpi_ctx = with_pool_signer(
+            &crate::ID,
+            state,
+            &[ctx.accounts.pool_token_account.to_account_info(), ctx.accounts.admin_token_account.to_account_info()],
+        )?;
+
         token::transfer(
-            CpiContext::new_with_signer(
-                cpi_program,
-                cpi_accounts,
-                &[&[
-                    b"pool_authority",
-                    ctx.accounts.pool_state.key().as_ref(),
-                    &[*ctx.bumps.get("pool_authority").unwrap()],
-                ]],
-            ),
+            cpi_ctx,
             amount,
         )?;
-        // FIX: Corrected balance checks using proper field names and variables.
-        require!(
-            ctx.accounts.pool_token_account.amount == initial_pool_balance.checked_sub(amount).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-        require!(
-            ctx.accounts.admin_token_account.amount == initial_admin_balance.checked_add(amount).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-        // FIX: Simplified pool balance check to verify sufficient liquidity after withdrawal.
-        if pool_state.total_liquidity > 0 {
-            require!(
-                ctx.accounts.pool_token_account.amount >= pool_state.trade_settings.min_size,
-                ErrorCode::InsufficientPoolBalance
-            );
-        }
-        emit!(LiquidityRemoved {
-            pool: pool_state.key(),
-            // FIX: Corrected event field to use pool_state.admin instead of undefined pool_admin.
-            admin_pubkey: pool_state.admin,
-            amount,
-            ts: current_time as i64,
-        });
+
+        // Update pool state
+        state.total_liquidity = state.total_liquidity.checked_sub(amount)
+            .ok_or(ErrorCode::Overflow)?;
+        state.last_update = current_time;
+
+        // Emit event
+        state.emit_liquidity_removed(&ctx.accounts.admin.key(), amount, current_time as i64);
+
         Ok(())
     }
 
@@ -290,46 +222,71 @@ pub mod hoe_dex_protection {
         amount_in: u64,
         minimum_amount_out: u64,
     ) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
 
         // Validate trade parameters
-        validation::validate_trade_parameters(pool_state, amount_in, current_time)?;
+        validation::validate_trade_parameters(state, amount_in, current_time)?;
 
-        // Calculate fee and execute trade
-        let (fee_amount, fee_mode) = utils::calculate_fee(pool_state, amount_in, current_time as i64)?;
-        let amount_after_fee = amount_in.checked_sub(fee_amount)
-            .ok_or(ErrorCode::Overflow)?;
+        // Validate token accounts
+        state.check_token_mint(&ctx.accounts.token_mint)?;
+        state.check_token_account(&ctx.accounts.buyer_token_account, &state.token_mint)?;
+        state.check_token_account(&ctx.accounts.pool_token_account, &state.token_mint)?;
 
-        // Execute the trade
-        let amount_out = execute_token_transfer(
-            ctx.accounts.into(),
-            amount_after_fee,
-            minimum_amount_out,
+        // Calculate fee and amount out
+        let (fee_amount, fee_mode) = state.calculate_fee(amount_in, current_time as i64)?;
+        let amount_out = amount_in
+            .checked_sub(fee_amount)
+            .ok_or_else(|| {
+                error!(ErrorCode::Overflow, "Amount out calculation overflow: {} - {}", 
+                    amount_in, fee_amount)
+            })?;
+
+        // Validate against minimum amount out
+        require!(
+            amount_out >= minimum_amount_out,
+            ErrorCode::SlippageExceeded,
+            "Amount out {} is less than minimum {}",
+            amount_out,
+            minimum_amount_out
+        );
+
+        // Validate against pool liquidity
+        require!(
+            amount_out <= ctx.accounts.pool_token_account.amount,
+            ErrorCode::InsufficientPoolBalance,
+            "Amount out {} exceeds pool balance {}",
+            amount_out,
+            ctx.accounts.pool_token_account.amount
+        );
+
+        // Transfer tokens from buyer to pool
+        let cpi_context = with_pool_signer(
+            &ctx.program_id,
+            state,
+            &[ctx.accounts.pool_authority.to_account_info()],
+        )?;
+
+        token::transfer(
+            cpi_context,
+            amount_in,
         )?;
 
         // Update pool state
-        pool_state.total_fees_collected = pool_state.total_fees_collected
-            .checked_add(fee_amount)
-            .ok_or(ErrorCode::Overflow)?;
-        pool_state.trade_settings.last_trade_time = current_time;
-        pool_state.rate_limit.count = pool_state.rate_limit.count
-            .checked_add(1)
-            .ok_or(ErrorCode::Overflow)?;
-        pool_state.volume.volume_24h = pool_state.volume.volume_24h
-            .checked_add(amount_in)
-            .ok_or(ErrorCode::Overflow)?;
+        state.total_fees_collected = state.total_fees_collected.saturating_add(fee_amount);
+        state.trade_settings.last_trade_time = current_time;
+        state.rate_limit.count = state.rate_limit.count.saturating_add(1);
+        state.volume.volume_24h = state.volume.volume_24h.saturating_add(amount_in);
 
-        emit!(TradeExecuted {
-            pool: pool_state.key(),
-            buyer_pubkey: ctx.accounts.buyer.key(),
+        // Emit trade event
+        state.emit_trade_executed(
+            &ctx.accounts.buyer.key(),
             amount_in,
             amount_out,
             fee_amount,
             fee_mode,
-            ts: current_time as i64,
-            token_mint: pool_state.token_mint,
-        });
+            current_time as i64,
+        );
 
         Ok(())
     }
@@ -489,55 +446,41 @@ pub mod hoe_dex_protection {
     /// - Fees must be available to withdraw
     /// - Reentrancy protection
     pub fn withdraw_fees(ctx: Context<contexts::WithdrawFees>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
 
-        // Reentrancy protection
-        let _guard = ReentrancyGuard::new(pool_state)?;
-
-        // Validate admin
-        utils::require_admin!(ctx, pool_state);
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
 
         // Validate token accounts
-        require!(
-            ctx.accounts.pool_token_account.mint == pool_state.token_mint,
-            ErrorCode::InvalidTokenAccount
-        );
-        require!(
-            ctx.accounts.admin_token_account.mint == pool_state.token_mint,
-            ErrorCode::InvalidTokenAccount
-        );
+        state.check_token_mint(&ctx.accounts.token_mint)?;
+        state.check_token_account(&ctx.accounts.admin_token_account, &state.token_mint)?;
+        state.check_token_account(&ctx.accounts.pool_token_account, &state.token_mint)?;
 
-        // Check if fees are available
-        let fees_to_withdraw = pool_state.total_fees_collected;
-        require!(fees_to_withdraw > 0, ErrorCode::NoFeesAvailable);
+        // Validate fees available
+        validate_condition!(state.total_fees_collected > 0, ErrorCode::NoFeesAvailable);
 
-        // Reset fees before transfer to prevent reentrancy
-        pool_state.total_fees_collected = 0;
-
-        // Transfer fees to admin
-        token::transfer(
-            CpiContext::new_with_signer(
-                ctx.accounts.token_program.to_account_info(),
-                Transfer {
-                    from: ctx.accounts.pool_token_account.to_account_info(),
-                    to: ctx.accounts.admin_token_account.to_account_info(),
-                    authority: ctx.accounts.pool_authority.to_account_info(),
-                },
-                &[&[
-                    b"pool_authority",
-                    ctx.accounts.pool_state.key().as_ref(),
-                    &[*ctx.bumps.get("pool_authority").unwrap()],
-                ]],
-            ),
-            fees_to_withdraw,
+        // Transfer fees from pool to admin
+        let cpi_ctx = with_pool_signer(
+            &crate::ID,
+            state,
+            &[ctx.accounts.pool_token_account.to_account_info(), ctx.accounts.admin_token_account.to_account_info()],
         )?;
 
-        // Emit withdrawal event
+        token::transfer(
+            cpi_ctx,
+            state.total_fees_collected,
+        )?;
+
+        // Update pool state
+        state.total_fees_collected = 0;
+        state.last_update = current_time;
+
+        // Emit event
         emit!(FeesWithdrawn {
-            pool: pool_state.key(),
-            admin_pubkey: ctx.accounts.admin.key(),
-            amount: fees_to_withdraw,
+            pool: state.key(),
+            admin_pubkey: state.admin,
+            amount: state.total_fees_collected,
             ts: current_time as i64,
         });
 
@@ -550,22 +493,23 @@ pub mod hoe_dex_protection {
     /// - Admin must be a signer
     /// - Fee tiers must not be already locked
     pub fn lock_fee_tiers(ctx: Context<contexts::LockFeeTiers>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
 
-        // Validate admin
-        utils::require_admin!(ctx, pool_state);
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
 
-        // Check if fee tiers are already locked
-        require!(!pool_state.fee_tiers_locked, ErrorCode::FeeTiersLocked);
+        // Validate fee tiers not already locked
+        validate_condition!(!state.fee_tiers_locked, ErrorCode::FeeTiersLocked);
 
-        // Lock fee tiers
-        pool_state.fee_tiers_locked = true;
+        // Update pool state
+        state.fee_tiers_locked = true;
+        state.last_update = current_time;
 
-        // Emit locking event
+        // Emit event
         emit!(FeeTiersLocked {
-            pool: pool_state.key(),
-            admin_pubkey: ctx.accounts.admin.key(),
+            pool: state.key(),
+            admin_pubkey: state.admin,
             ts: current_time as i64,
         });
 
@@ -579,28 +523,24 @@ pub mod hoe_dex_protection {
     /// - Fee tiers must be currently locked
     /// - Schedules unlock via pending_update for delayed execution
     pub fn unlock_fee_tiers(ctx: Context<contexts::AdminAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
 
-        // Validate admin
-        utils::require_admin!(ctx, pool_state);
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
 
-        // Check if fee tiers are locked
-        require!(pool_state.fee_tiers_locked, ErrorCode::FeeTiersNotLocked);
+        // Validate fee tiers are locked
+        validate_condition!(state.fee_tiers_locked, ErrorCode::FeeTiersNotLocked);
 
-        // Schedule unlock with 24-hour timelock
-        pool_state.pending_update = Some(PendingUpdate {
-            fee_tiers_locked: Some(false),
-            scheduled_time: current_time as i64 + 86400,
-            ..Default::default()
-        });
+        // Update pool state
+        state.fee_tiers_locked = false;
+        state.last_update = current_time;
 
-        // Emit unlock scheduled event
-        // NEW: Added event for transparency of unlock scheduling.
+        // Emit event
         emit!(FeeTiersUnlockScheduled {
-            pool: pool_state.key(),
-            admin_pubkey: ctx.accounts.admin.key(),
-            scheduled_time: current_time + 86400,
+            pool: state.key(),
+            admin_pubkey: state.admin,
+            scheduled_time: current_time as i64,
         });
 
         Ok(())
@@ -613,68 +553,57 @@ pub mod hoe_dex_protection {
     /// - Stores: pending update with scheduled execution time
     pub fn schedule_parameter_update(
         ctx: Context<contexts::AdminAction>,
-        early_trade_fee_bps: Option<u64>,
-        early_trade_window_seconds: Option<u64>,
-        max_trade_size_bps: Option<u64>,
-        min_trade_size: Option<u64>,
-        cooldown_seconds: Option<u64>,
-        is_paused: Option<bool>,
-        is_emergency_paused: Option<bool>,
-        fee_tiers: Option<Vec<FeeTier>>,
-        max_daily_volume: Option<u64>,
-        max_price_impact_bps: Option<u64>,
-        circuit_breaker_threshold: Option<u64>,
-        circuit_breaker_window: Option<u64>,
-        circuit_breaker_cooldown: Option<u64>,
-        rate_limit_window: Option<u64>,
-        rate_limit_max: Option<u32>,
-        fee_tiers_locked: Option<bool>, // NEW: Added to support fee tier unlocking.
+        trade_settings: Option<TradeSettingsUpdate>,
+        protection_settings: Option<ProtectionSettingsUpdate>,
+        fee_settings: Option<FeeSettingsUpdate>,
+        state_settings: Option<StateSettingsUpdate>,
     ) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        
-        // Add reentrancy protection
-        let _guard = ReentrancyGuard::new(pool_state)?;
-        
-        utils::require_admin!(ctx, pool_state);
-        if let Some(new_fee_tiers) = &fee_tiers {
-            require!(!new_fee_tiers.is_empty(), ErrorCode::InvalidFeeTier);
-            require!(new_fee_tiers.len() <= MAX_FEE_TIERS, ErrorCode::TooManyFeeTiers);
-            let min_spacing = pool_state.volume.max_daily
-                .checked_mul(MIN_FEE_TIER_SPACING_BPS)
-                .ok_or(ErrorCode::Overflow)?
-                .checked_div(10000)?;
-            for (i, tier) in new_fee_tiers.iter().enumerate() {
-                require!(tier.fee_bps <= MAX_TIER_FEE_BPS, ErrorCode::FeeTooHigh);
-                require!(tier.volume_threshold > 0, ErrorCode::InvalidFeeTier);
-                if i > 0 {
-                    let prev = &new_fee_tiers[i - 1];
-                    require!(
-                        tier.volume_threshold > prev.volume_threshold,
-                        ErrorCode::DuplicateFeeTierThreshold
-                    );
-                    require!(
-                        tier.volume_threshold - prev.volume_threshold >= min_spacing,
-                        ErrorCode::InvalidFeeTierSpacing
-                    );
-                    require!(
-                        tier.fee_bps <= prev.fee_bps,
-                        ErrorCode::InvalidFeeTier
-                    );
-                }
+
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+
+        // Validate new settings if provided
+        if let Some(settings) = &trade_settings {
+            validate_parameter!(
+                settings.max_trade_size_bps,
+                settings.min_trade_size,
+                u64::MAX,
+                ErrorCode::InvalidParameterRelationship
+            );
+        }
+
+        if let Some(settings) = &protection_settings {
+            validate_parameter!(
+                settings.max_price_impact_bps,
+                0,
+                10000,
+                ErrorCode::PriceImpactTooHigh
+            );
+        }
+
+        if let Some(settings) = &fee_settings {
+            if let Some(fee_tiers) = &settings.fee_tiers {
+                validation::validate_fee_parameters(state, fee_tiers)?;
             }
         }
-        let pending_update = PendingUpdate {
-            fee_tiers_locked,
-            scheduled_time: current_time + 86400,
-            ..Default::default()
-        };
-        pool_state.pending_update = Some(pending_update);
+
+        // Create pending update
+        state.pending_update = Some(PendingUpdate {
+            scheduled_time: current_time + 86400, // 24 hour timelock
+            trade_settings,
+            protection_settings,
+            fee_settings,
+            state_settings,
+        });
+
         emit!(ParameterUpdateScheduled {
-            pool: pool_state.key(),
-            admin_pubkey: ctx.accounts.admin.key(),
+            pool: state.key(),
+            admin_pubkey: state.admin,
             scheduled_time: current_time + 86400,
         });
+
         Ok(())
     }
 
@@ -707,86 +636,102 @@ pub mod hoe_dex_protection {
     /// - Validates: admin, timelock, parameter relationships
     /// - Updates: pool state with new parameters
     pub fn apply_parameter_update(ctx: Context<contexts::AdminAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
 
         // Validate pending update exists and timelock has expired
-        let pending_update = pool_state.pending_update.as_ref()
-            .ok_or(ErrorCode::NoPendingUpdate)?;
+        let pending_update = state.pending_update.take()
+            .ok_or_else(|| {
+                error!(ErrorCode::NoPendingUpdate, "No pending update found")
+            })?;
         require!(
             current_time >= pending_update.scheduled_time,
-            ErrorCode::TimelockNotExpired
+            ErrorCode::TimelockNotExpired,
+            "Timelock not expired: current {} < scheduled {}",
+            current_time,
+            pending_update.scheduled_time
         );
 
         // Apply trade settings updates
-        if let Some(early_trade_fee_bps) = pending_update.early_trade_fee_bps {
-            pool_state.trade_settings.early_trade_fee_bps = early_trade_fee_bps;
-        }
-        if let Some(early_trade_window_seconds) = pending_update.early_trade_window_seconds {
-            pool_state.trade_settings.early_trade_window_seconds = early_trade_window_seconds;
-        }
-        if let Some(max_trade_size_bps) = pending_update.max_trade_size_bps {
-            pool_state.trade_settings.max_size_bps = max_trade_size_bps;
-        }
-        if let Some(min_trade_size) = pending_update.min_trade_size {
-            pool_state.trade_settings.min_size = min_trade_size;
-        }
-        if let Some(cooldown_seconds) = pending_update.cooldown_seconds {
-            pool_state.trade_settings.cooldown_seconds = cooldown_seconds;
+        if let Some(settings) = pending_update.trade_settings {
+            state.trade_settings.early_trade_fee_bps = settings.early_trade_fee_bps;
+            state.trade_settings.early_trade_window_seconds = settings.early_trade_window_seconds;
+            state.trade_settings.max_size_bps = settings.max_trade_size_bps;
+            state.trade_settings.min_size = settings.min_trade_size;
+            state.trade_settings.cooldown_seconds = settings.cooldown_seconds;
+
+            emit!(TradeSettingsUpdated {
+                pool: state.key(),
+                admin_pubkey: state.admin,
+                early_trade_fee_bps: settings.early_trade_fee_bps,
+                early_trade_window_seconds: settings.early_trade_window_seconds,
+                max_trade_size_bps: settings.max_trade_size_bps,
+                min_trade_size: settings.min_trade_size,
+                cooldown_seconds: settings.cooldown_seconds,
+                ts: current_time as i64,
+            });
         }
 
         // Apply protection settings updates
-        if let Some(max_daily_volume) = pending_update.max_daily_volume {
-            pool_state.volume.max_daily = max_daily_volume;
-        }
-        if let Some(max_price_impact_bps) = pending_update.max_price_impact_bps {
-            pool_state.protection.max_price_impact_bps = max_price_impact_bps;
+        if let Some(settings) = pending_update.protection_settings {
+            state.volume.max_daily = settings.max_daily_volume;
+            state.protection.max_price_impact_bps = settings.max_price_impact_bps;
+            state.circuit_breaker.threshold = settings.circuit_breaker_threshold;
+            state.circuit_breaker.window = settings.circuit_breaker_window;
+            state.circuit_breaker.cooldown = settings.circuit_breaker_cooldown;
+            state.rate_limit.window = settings.rate_limit_window;
+            state.rate_limit.max = settings.rate_limit_max;
+
+            emit!(ProtectionSettingsUpdated {
+                pool: state.key(),
+                admin_pubkey: state.admin,
+                max_daily_volume: settings.max_daily_volume,
+                max_price_impact_bps: settings.max_price_impact_bps,
+                circuit_breaker_threshold: settings.circuit_breaker_threshold,
+                circuit_breaker_window: settings.circuit_breaker_window,
+                circuit_breaker_cooldown: settings.circuit_breaker_cooldown,
+                rate_limit_window: settings.rate_limit_window,
+                rate_limit_max: settings.rate_limit_max,
+                ts: current_time as i64,
+            });
         }
 
-        // Apply circuit breaker settings updates
-        if let Some(circuit_breaker_threshold) = pending_update.circuit_breaker_threshold {
-            pool_state.circuit_breaker.threshold = circuit_breaker_threshold;
-        }
-        if let Some(circuit_breaker_window) = pending_update.circuit_breaker_window {
-            pool_state.circuit_breaker.window = circuit_breaker_window;
-        }
-        if let Some(circuit_breaker_cooldown) = pending_update.circuit_breaker_cooldown {
-            pool_state.circuit_breaker.cooldown = circuit_breaker_cooldown;
+        // Apply fee settings updates
+        if let Some(settings) = pending_update.fee_settings {
+            if let Some(fee_tiers) = settings.fee_tiers {
+                state.fee_tiers = fee_tiers;
+            }
+            state.fee_tiers_locked = settings.fee_tiers_locked;
+
+            emit!(FeeSettingsUpdated {
+                pool: state.key(),
+                admin_pubkey: state.admin,
+                fee_tiers_count: state.fee_tiers.len(),
+                fee_tiers_locked: settings.fee_tiers_locked,
+                ts: current_time as i64,
+            });
         }
 
-        // Apply rate limit settings updates
-        if let Some(rate_limit_window) = pending_update.rate_limit_window {
-            pool_state.rate_limit.window = rate_limit_window;
-        }
-        if let Some(rate_limit_max) = pending_update.rate_limit_max {
-            pool_state.rate_limit.max = rate_limit_max;
+        // Apply state settings updates
+        if let Some(settings) = pending_update.state_settings {
+            state.is_paused = settings.is_paused;
+            state.is_emergency_paused = settings.is_emergency_paused;
+
+            emit!(StateSettingsUpdated {
+                pool: state.key(),
+                admin_pubkey: state.admin,
+                is_paused: settings.is_paused,
+                is_emergency_paused: settings.is_emergency_paused,
+                ts: current_time as i64,
+            });
         }
 
-        // Apply fee tier updates
-        if let Some(fee_tiers) = &pending_update.fee_tiers {
-            // Validate new fee tiers
-            utils::validate_fee_tiers(fee_tiers)?;
-            pool_state.fee_tiers = fee_tiers.clone();
-        }
+        state.last_update = current_time;
 
-        // Apply state updates
-        if let Some(is_paused) = pending_update.is_paused {
-            pool_state.is_paused = is_paused;
-        }
-        if let Some(is_emergency_paused) = pending_update.is_emergency_paused {
-            pool_state.is_emergency_paused = is_emergency_paused;
-        }
-        if let Some(fee_tiers_locked) = pending_update.fee_tiers_locked {
-            pool_state.fee_tiers_locked = fee_tiers_locked;
-        }
-
-        // Clear pending update
-        pool_state.pending_update = None;
-        pool_state.last_update = current_time;
-
+        // Emit general update event
         emit!(ParametersUpdated {
-            pool: pool_state.key(),
-            admin_pubkey: pool_state.admin,
+            pool: state.key(),
+            admin_pubkey: state.admin,
             ts: current_time as i64,
         });
 
@@ -799,15 +744,28 @@ pub mod hoe_dex_protection {
     /// - Validates: emergency admin
     /// - Sets: scheduled pause time
     pub fn schedule_emergency_pause(ctx: Context<contexts::EmergencyAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        utils::require_emergency_admin!(ctx, pool_state);
-        pool_state.emergency_action_scheduled_time = current_time + EMERGENCY_TIMELOCK_SECONDS;
+
+        // Validate emergency admin
+        validate_condition!(
+            ctx.accounts.emergency_admin.key() == state.emergency_admin,
+            ErrorCode::InvalidEmergencyAdmin
+        );
+
+        // Validate not already paused
+        validate_condition!(!state.is_emergency_paused, ErrorCode::EmergencyPaused);
+
+        // Schedule emergency pause
+        state.emergency_action_scheduled_time = current_time + 3600; // 1 hour timelock
+
+        // Emit event
         emit!(EmergencyPauseScheduled {
-            pool: pool_state.key(),
-            emergency_admin_pubkey: pool_state.emergency_admin,
-            scheduled_time: current_time + EMERGENCY_TIMELOCK_SECONDS,
+            pool: state.key(),
+            emergency_admin_pubkey: state.emergency_admin,
+            scheduled_time: current_time + 3600,
         });
+
         Ok(())
     }
 
@@ -817,21 +775,32 @@ pub mod hoe_dex_protection {
     /// - Validates: emergency admin, timelock
     /// - Sets: pool to emergency paused state
     pub fn apply_emergency_pause(ctx: Context<contexts::EmergencyAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        utils::require_emergency_admin!(ctx, pool_state);
-        require!(
-            current_time >= pool_state.emergency_action_scheduled_time,
+
+        // Validate emergency admin
+        validate_condition!(
+            ctx.accounts.emergency_admin.key() == state.emergency_admin,
+            ErrorCode::InvalidEmergencyAdmin
+        );
+
+        // Validate timelock has expired
+        validate_condition!(
+            current_time >= state.emergency_action_scheduled_time,
             ErrorCode::TimelockNotExpired
         );
-        pool_state.is_emergency_paused = true;
-        pool_state.last_update = current_time;
-        pool_state.emergency_action_scheduled_time = 0;
+
+        // Apply emergency pause
+        state.is_emergency_paused = true;
+        state.last_update = current_time;
+
+        // Emit event
         emit!(EmergencyPaused {
-            pool: pool_state.key(),
-            emergency_admin_pubkey: pool_state.emergency_admin,
+            pool: state.key(),
+            emergency_admin_pubkey: state.emergency_admin,
             ts: current_time as i64,
         });
+
         Ok(())
     }
 
@@ -841,15 +810,28 @@ pub mod hoe_dex_protection {
     /// - Validates: emergency admin
     /// - Sets: scheduled resume time
     pub fn schedule_emergency_resume(ctx: Context<contexts::EmergencyAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        utils::require_emergency_admin!(ctx, pool_state);
-        pool_state.emergency_action_scheduled_time = current_time + EMERGENCY_TIMELOCK_SECONDS;
+
+        // Validate emergency admin
+        validate_condition!(
+            ctx.accounts.emergency_admin.key() == state.emergency_admin,
+            ErrorCode::InvalidEmergencyAdmin
+        );
+
+        // Validate is paused
+        validate_condition!(state.is_emergency_paused, ErrorCode::PoolNotPaused);
+
+        // Schedule emergency resume
+        state.emergency_action_scheduled_time = current_time + 3600; // 1 hour timelock
+
+        // Emit event
         emit!(EmergencyResumeScheduled {
-            pool: pool_state.key(),
-            emergency_admin_pubkey: pool_state.emergency_admin,
-            scheduled_time: current_time + EMERGENCY_TIMELOCK_SECONDS,
+            pool: state.key(),
+            emergency_admin_pubkey: state.emergency_admin,
+            scheduled_time: current_time + 3600,
         });
+
         Ok(())
     }
 
@@ -859,21 +841,32 @@ pub mod hoe_dex_protection {
     /// - Validates: emergency admin, timelock
     /// - Sets: pool to non-emergency paused state
     pub fn apply_emergency_resume(ctx: Context<contexts::EmergencyAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        utils::require_emergency_admin!(ctx, pool_state);
-        require!(
-            current_time >= pool_state.emergency_action_scheduled_time,
+
+        // Validate emergency admin
+        validate_condition!(
+            ctx.accounts.emergency_admin.key() == state.emergency_admin,
+            ErrorCode::InvalidEmergencyAdmin
+        );
+
+        // Validate timelock has expired
+        validate_condition!(
+            current_time >= state.emergency_action_scheduled_time,
             ErrorCode::TimelockNotExpired
         );
-        pool_state.is_emergency_paused = false;
-        pool_state.last_update = current_time;
-        pool_state.emergency_action_scheduled_time = 0;
+
+        // Apply emergency resume
+        state.is_emergency_paused = false;
+        state.last_update = current_time;
+
+        // Emit event
         emit!(EmergencyResumed {
-            pool: pool_state.key(),
-            emergency_admin_pubkey: pool_state.emergency_admin,
+            pool: state.key(),
+            emergency_admin_pubkey: state.emergency_admin,
             ts: current_time as i64,
         });
+
         Ok(())
     }
 
@@ -883,26 +876,29 @@ pub mod hoe_dex_protection {
     /// - Validates: admin, timestamp, cooldown
     /// - Resets: circuit breaker and 24h volume
     pub fn reset_circuit_breaker(ctx: Context<contexts::AdminAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        
-        // Add reentrancy protection
-        let _guard = ReentrancyGuard::new(pool_state)?;
-        
-        utils::require_admin!(ctx, pool_state);
-        require!(current_time >= 0, ErrorCode::InvalidTimestamp);
-        require!(
-            current_time - pool_state.circuit_breaker.last_trigger >= pool_state.circuit_breaker.cooldown,
+
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+
+        // Validate cooldown has expired
+        validate_condition!(
+            current_time >= state.circuit_breaker.last_trigger + state.circuit_breaker.cooldown,
             ErrorCode::CircuitBreakerCooldown
         );
-        pool_state.circuit_breaker.last_trigger = current_time;
-        pool_state.volume.volume_24h = 0;
-        pool_state.volume.last_update = current_time;
+
+        // Reset circuit breaker
+        state.circuit_breaker.last_trigger = 0;
+        state.last_update = current_time;
+
+        // Emit event
         emit!(CircuitBreakerReset {
-            pool: pool_state.key(),
-            admin_pubkey: pool_state.admin,
+            pool: state.key(),
+            admin_pubkey: state.admin,
             ts: current_time as i64,
         });
+
         Ok(())
     }
 
@@ -913,30 +909,27 @@ pub mod hoe_dex_protection {
     /// - New admin must be different from current and emergency admin
     /// - Current admin must be a signer
     pub fn update_admin(ctx: Context<contexts::AdminAction>, new_admin: Pubkey) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
 
-        // Validate current admin
-        utils::require_admin!(ctx, pool_state);
-
-        // Check admin change cooldown
-        require!(
-            current_time - pool_state.last_admin_update >= ADMIN_UPDATE_COOLDOWN,
-            ErrorCode::AdminUpdateTooFrequent
-        );
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
 
         // Validate new admin
-        require!(new_admin != pool_state.admin, ErrorCode::InvalidNewAdmin);
-        require!(new_admin != pool_state.emergency_admin, ErrorCode::InvalidNewAdmin);
+        validate_condition!(
+            new_admin != state.admin && new_admin != state.emergency_admin,
+            ErrorCode::InvalidNewAdmin
+        );
 
-        // Update admin and timestamp
-        let old_admin = pool_state.admin;
-        pool_state.admin = new_admin;
-        pool_state.last_admin_update = current_time;
+        // Update admin
+        let old_admin = state.admin;
+        state.admin = new_admin;
+        state.last_admin_update = current_time;
+        state.last_update = current_time;
 
-        // Emit admin update event
+        // Emit event
         emit!(AdminUpdated {
-            pool: pool_state.key(),
+            pool: state.key(),
             old_admin_pubkey: old_admin,
             new_admin_pubkey: new_admin,
             ts: current_time as i64,
@@ -947,21 +940,23 @@ pub mod hoe_dex_protection {
 
     /// Reset the pending update
     pub fn reset_pending_update(ctx: Context<contexts::AdminAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        
-        // Add reentrancy protection
-        let _guard = ReentrancyGuard::new(pool_state)?;
-        
-        utils::require_admin!(ctx, pool_state);
 
-        // Clear pending update
-        pool_state.pending_update = None;
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+
+        // Validate pending update exists
+        validate_condition!(state.pending_update.is_some(), ErrorCode::NoPendingUpdate);
+
+        // Reset pending update
+        state.pending_update = None;
+        state.last_update = current_time;
 
         // Emit event
         emit!(ParameterUpdateCancelled {
-            pool: pool_state.key(),
-            admin_pubkey: ctx.accounts.admin.key(),
+            pool: state.key(),
+            admin_pubkey: state.admin,
             ts: current_time as i64,
         });
 
@@ -970,10 +965,32 @@ pub mod hoe_dex_protection {
 
     /// Toggle the pool pause state
     pub fn toggle_pause(ctx: Context<contexts::AdminAction>) -> Result<()> {
-        let pool_state = &mut ctx.accounts.pool_state;
+        let state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp as u64;
-        
-        pool_state.toggle_pause(current_time)
+
+        // Validate admin and check cooldown
+        validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+
+        // Toggle pause state
+        state.is_paused = !state.is_paused;
+        state.last_update = current_time;
+
+        // Emit event
+        if state.is_paused {
+            emit!(PoolPaused {
+                pool: state.key(),
+                admin_pubkey: state.admin,
+                ts: current_time as i64,
+            });
+        } else {
+            emit!(PoolResumed {
+                pool: state.key(),
+                admin_pubkey: state.admin,
+                ts: current_time as i64,
+            });
+        }
+
+        Ok(())
     }
 
     // Add fee tier validation function
@@ -1009,6 +1026,15 @@ pub mod hoe_dex_protection {
 mod contexts {
     use super::*;
 
+    /// Context for initializing a new pool
+    /// 
+    /// # Accounts
+    /// * `pool_state` - The pool state account to initialize
+    /// * `admin` - The admin account that will own the pool
+    /// * `token_mint` - The token mint for the pool
+    /// * `system_program` - Required for account creation
+    /// * `token_program` - Required for token operations
+    /// * `rent` - Required for account creation
     #[derive(Accounts)]
     pub struct InitializePool<'info> {
         #[account(
@@ -1027,6 +1053,15 @@ mod contexts {
         pub rent: Sysvar<'info, Rent>,
     }
 
+    /// Context for adding liquidity to the pool
+    /// 
+    /// # Accounts
+    /// * `pool_state` - The pool state account
+    /// * `admin` - The admin account that owns the pool
+    /// * `admin_token_account` - The admin's token account
+    /// * `pool_token_account` - The pool's token account
+    /// * `pool_authority` - The pool's authority PDA
+    /// * `token_program` - Required for token operations
     #[derive(Accounts)]
     pub struct AddLiquidity<'info> {
         #[account(mut)]
@@ -1037,6 +1072,10 @@ mod contexts {
         pub admin_token_account: Account<'info, TokenAccount>,
         #[account(mut)]
         pub pool_token_account: Account<'info, TokenAccount>,
+        #[account(
+            seeds = [b"pool_authority", pool_state.key().as_ref()],
+            bump
+        )]
         pub pool_authority: AccountInfo<'info>,
         pub token_program: Program<'info, Token>,
     }
@@ -1051,6 +1090,10 @@ mod contexts {
         pub buyer_token_account: Account<'info, TokenAccount>,
         #[account(mut)]
         pub pool_token_account: Account<'info, TokenAccount>,
+        #[account(
+            seeds = [b"pool_authority", pool_state.key().as_ref()],
+            bump
+        )]
         pub pool_authority: AccountInfo<'info>,
         pub token_program: Program<'info, Token>,
     }
@@ -1119,6 +1162,24 @@ mod contexts {
     pub struct SimulateTrade<'info> {
         pub pool_state: Account<'info, PoolState>,
     }
+
+    #[derive(Accounts)]
+    pub struct WithdrawCollectedFees<'info> {
+        #[account(mut)]
+        pub pool_state: Account<'info, PoolState>,
+        #[account(mut)]
+        pub admin: Signer<'info>,
+        #[account(mut)]
+        pub pool_token_account: Account<'info, TokenAccount>,
+        #[account(mut)]
+        pub admin_token_account: Account<'info, TokenAccount>,
+        #[account(
+            seeds = [b"pool_authority", pool_state.key().as_ref()],
+            bump
+        )]
+        pub pool_authority: AccountInfo<'info>,
+        pub token_program: Program<'info, Token>,
+    }
 }
 
 // Add helper function for PDA derivation with proper error handling
@@ -1154,98 +1215,8 @@ pub fn with_pool_signer<'info>(
     ))
 }
 
-// Update execute_trade to use explicit pause check
-pub fn execute_trade(
-    ctx: Context<contexts::ExecuteTrade>,
-    amount_in: u64,
-    minimum_amount_out: u64,
-) -> Result<()> {
-    let pool_state = &mut ctx.accounts.pool_state;
-    let current_time = Clock::get()?.unix_timestamp as u64;
-
-    // Explicit pause check
-    require!(!pool_state.is_paused, ErrorCode::PoolPaused);
-    require!(!pool_state.is_emergency_paused, ErrorCode::EmergencyPaused);
-    require!(!pool_state.is_finalized, ErrorCode::PoolFinalized);
-
-    // Decay volume before processing trade
-    pool_state.decay_volume(current_time)?;
-
-    // Validate pool state
-    utils::validate_trader(&ctx.accounts.buyer.key(), pool_state)?;
-
-    // Check freeze authority
-    let token_mint = ctx.accounts.token_mint;
-    if token_mint.freeze_authority.is_some() {
-        emit!(FreezeAuthorityWarning {
-            pool: pool_state.key(),
-            token_mint: token_mint.key(),
-            ts: current_time as i64,
-        });
-        return Err(ErrorCode::TokenMintHasFreezeAuthority.into());
-    }
-
-    // Add reentrancy protection
-    let _guard = ReentrancyGuard::new(pool_state)?;
-
-    // Check all protection mechanisms
-    pool_state.check_circuit_breaker(current_time)?;
-    pool_state.check_rate_limit(current_time)?;
-    pool_state.check_blacklist(&ctx.accounts.buyer.key())?;
-    pool_state.check_snipe_protection(current_time)?;
-    pool_state.check_price_impact(amount_in, ctx.accounts.pool_token_account.amount)?;
-
-    // Calculate fee and execute trade
-    let (fee_amount, fee_mode) = utils::calculate_fee(pool_state, amount_in, current_time as i64)?;
-    let amount_out = amount_in.checked_sub(fee_amount).ok_or(ErrorCode::Overflow)?;
-
-    if amount_out < minimum_amount_out {
-        emit!(OperationFailed {
-            pool: pool_state.key(),
-            operation: "execute_trade".to_string(),
-            reason: "Slippage exceeded".to_string(),
-            ts: current_time as i64,
-        });
-        return Err(ErrorCode::SlippageExceeded.into());
-    }
-
-    // Execute the trade
-    token::transfer(
-        CpiContext::new(
-            ctx.accounts.token_program.to_account_info(),
-            token::Transfer {
-                from: ctx.accounts.buyer_token_account.to_account_info(),
-                to: ctx.accounts.pool_token_account.to_account_info(),
-                authority: ctx.accounts.buyer.to_account_info(),
-            },
-        ),
-        amount_in,
-    )?;
-
-    // Update pool state
-    pool_state.total_liquidity = pool_state.total_liquidity.checked_add(amount_in).ok_or(ErrorCode::Overflow)?;
-    pool_state.total_fees_collected = pool_state.total_fees_collected.checked_add(fee_amount).ok_or(ErrorCode::Overflow)?;
-    pool_state.trade_settings.last_trade_time = current_time;
-    pool_state.rate_limit.count = pool_state.rate_limit.count.checked_add(1).ok_or(ErrorCode::Overflow)?;
-    pool_state.volume.volume_24h = pool_state.volume.volume_24h.checked_add(amount_in).ok_or(ErrorCode::Overflow)?;
-
-    // Emit trade event
-    emit!(TradeExecuted {
-        pool: pool_state.key(),
-        buyer_pubkey: ctx.accounts.buyer.key(),
-        amount_in,
-        amount_out,
-        fee_amount,
-        fee_mode,
-        ts: current_time as i64,
-        token_mint: pool_state.token_mint,
-    });
-
-    Ok(())
-}
-
 #[account]
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct PoolState {
     pub version: u8,
     pub migration_flag: bool,
@@ -1277,63 +1248,16 @@ pub struct PoolState {
 
 impl PoolState {
     pub fn calculate_space() -> usize {
-        // Calculate total size including all fields
-        let size = 8 + // discriminator
-            1 + // version
-            1 + // migration_flag
-            1 + // is_initialized
-            32 + // admin
-            32 + // emergency_admin
-            32 + // token_mint
-            1 + // token_decimals
-            8 + // total_fees_collected
-            8 + // total_liquidity
-            1 + // is_paused
-            1 + // is_emergency_paused
-            1 + // is_finalized
-            8 + // pool_start_time
-            8 + // last_update
-            8 + // last_admin_update
-            8 + // emergency_action_scheduled_time
-            1 + // pending_update Option discriminator
-            8 + // pending_update timestamp
-            1 + // pending_update is_paused
-            1 + // pending_update is_emergency_paused
-            1 + // pending_update fee_tiers_locked
-            8 + // trade_settings max_size_bps
-            8 + // trade_settings min_size
-            8 + // trade_settings cooldown_seconds
-            8 + // trade_settings last_trade_time
-            8 + // trade_settings early_trade_fee_bps
-            8 + // trade_settings early_trade_window_seconds
-            8 + // rate_limit window
-            4 + // rate_limit count
-            4 + // rate_limit max
-            8 + // rate_limit last_reset
-            8 + // circuit_breaker threshold
-            8 + // circuit_breaker window
-            8 + // circuit_breaker cooldown
-            8 + // circuit_breaker last_trigger
-            8 + // volume volume_24h
-            8 + // volume last_update
-            8 + // volume last_decay
-            8 + // volume max_daily
-            8 + // protection snipe_protection_seconds
-            8 + // protection max_price_impact_bps
-            4 + // fee_tiers Vec length
-            (32 * 100) + // fee_tiers Vec capacity (max 100 tiers)
-            1 + // fee_tiers_locked
-            1 + // default_fee_bps Option discriminator
-            8 + // default_fee_bps
-            4 + // trader_blacklist Vec length
-            (32 * 1000); // trader_blacklist Vec capacity (max 1000 traders)
-
-        // Validate against Solana's maximum account size
-        if size > 10240 {
-            panic!("Account size {} exceeds Solana's maximum size of 10240 bytes", size);
-        }
-
-        size
+        // Calculate space for base struct
+        let base_size = std::mem::size_of::<PoolState>();
+        
+        // Calculate space for dynamic fields
+        let pending_update_size = PendingUpdate::default().try_to_vec().unwrap().len();
+        let fee_tiers_size = MAX_FEE_TIERS * std::mem::size_of::<FeeTier>();
+        let blacklist_size = MAX_BLACKLIST_SIZE * std::mem::size_of::<Pubkey>();
+        
+        // Add 8 bytes for discriminator
+        base_size + pending_update_size + fee_tiers_size + blacklist_size + 8
     }
 
     pub fn toggle_pause(&mut self, current_time: u64) -> Result<()> {
@@ -1379,27 +1303,32 @@ impl PoolState {
     }
 
     pub fn decay_volume(&mut self, current_time: u64) -> Result<()> {
-        if current_time - self.volume.last_decay >= 3600 { // Decay every hour
-            let hours_passed = (current_time - self.volume.last_decay) / 3600;
-            let decay_factor = 24u64.checked_sub(hours_passed).ok_or(ErrorCode::Overflow)?;
-            let old_volume = self.volume.volume_24h;
-            
-            self.volume.volume_24h = self.volume.volume_24h
-                .checked_mul(decay_factor)
-                .ok_or(ErrorCode::Overflow)?
-                .checked_div(24)
-                .ok_or(ErrorCode::Overflow)?;
-            
-            self.volume.last_decay = current_time;
+        let hours_passed = current_time
+            .checked_sub(self.volume.last_decay)
+            .ok_or_else(|| {
+                error!(ErrorCode::InvalidTimestamp, "Failed to calculate hours passed: {} - {}", 
+                    current_time, self.volume.last_decay)
+            })?
+            .checked_div(3600)
+            .ok_or_else(|| {
+                error!(ErrorCode::Overflow, "Hours calculation overflow: {} / 3600", 
+                    current_time - self.volume.last_decay)
+            })?;
 
-            emit!(VolumeDecayed {
-                pool: self.key(),
-                old_volume,
-                new_volume: self.volume.volume_24h,
-                hours_passed,
-                ts: current_time as i64,
-            });
+        if hours_passed > 0 {
+            let decay_factor = 100u64.saturating_sub(hours_passed.min(24));
+            let new_volume = self.volume.volume_24h
+                .saturating_mul(decay_factor)
+                .checked_div(100)
+                .ok_or_else(|| {
+                    error!(ErrorCode::Overflow, "Volume decay calculation overflow: {} * {} / 100", 
+                        self.volume.volume_24h, decay_factor)
+                })?;
+
+            self.volume.volume_24h = new_volume;
+            self.volume.last_decay = current_time;
         }
+
         Ok(())
     }
 
@@ -1445,9 +1374,249 @@ impl PoolState {
 
         Ok(())
     }
+
+    pub fn check_token_mint(&self, mint: &Account<Mint>) -> Result<()> {
+        validate_condition!(mint.key() == self.token_mint, ErrorCode::InvalidTokenMint);
+        validate_condition!(mint.decimals == self.token_decimals, ErrorCode::InvalidTokenDecimals);
+        validate_condition!(mint.freeze_authority.is_none(), ErrorCode::TokenMintHasFreezeAuthority);
+        Ok(())
+    }
+
+    pub fn check_token_account(&self, account: &Account<TokenAccount>, mint: &Pubkey) -> Result<()> {
+        validate_condition!(account.mint == *mint, ErrorCode::InvalidTokenAccount);
+        validate_condition!(!account.is_delegated(), ErrorCode::TokenAccountDelegated);
+        Ok(())
+    }
+
+    pub fn emit_liquidity_added(&self, admin: &Pubkey, amount: u64, ts: i64) {
+        emit!(LiquidityAdded {
+            pool: self.key(),
+            admin_pubkey: *admin,
+            amount,
+            ts,
+        });
+    }
+
+    pub fn emit_liquidity_removed(&self, admin: &Pubkey, amount: u64, ts: i64) {
+        emit!(LiquidityRemoved {
+            pool: self.key(),
+            admin_pubkey: *admin,
+            amount,
+            ts,
+        });
+    }
+
+    pub fn emit_trade_executed(&self, buyer: &Pubkey, amount_in: u64, amount_out: u64, fee_amount: u64, fee_mode: u8, ts: i64) {
+        emit!(TradeExecuted {
+            pool: self.key(),
+            buyer_pubkey: *buyer,
+            amount_in,
+            amount_out,
+            fee_amount,
+            fee_mode,
+            ts,
+            token_mint: self.token_mint,
+        });
+    }
+
+    /// Calculates the price impact of a trade
+    /// 
+    /// # Arguments
+    /// * `amount_in` - The amount of tokens being traded
+    /// * `pool_balance` - The current pool balance
+    /// 
+    /// # Returns
+    /// * `Result<u64>` - The price impact in basis points
+    pub fn calculate_price_impact(&self, amount_in: u64, pool_balance: u64) -> Result<u64> {
+        if pool_balance == 0 {
+            return Ok(0);
+        }
+
+        // Calculate price impact in basis points
+        let impact = amount_in
+            .checked_mul(10000)
+            .ok_or(ErrorCode::Overflow)?
+            .checked_div(pool_balance)
+            .ok_or(ErrorCode::Overflow)?;
+
+        Ok(impact)
+    }
+
+    /// Enforces minimum fee requirements and handles edge cases
+    /// 
+    /// # Arguments
+    /// * `fee` - The calculated fee amount
+    /// 
+    /// # Returns
+    /// * `Result<u64>` - The enforced minimum fee
+    pub fn enforce_min_fee(&self, fee: u64) -> Result<u64> {
+        // Ensure fee is at least MINIMUM_FEE to prevent zero-fee edge cases
+        let min_fee = fee.max(MINIMUM_FEE);
+        
+        // Check for overflow after max operation
+        if min_fee < fee {
+            return Err(ErrorCode::Overflow.into());
+        }
+
+        Ok(min_fee)
+    }
+
+    pub fn calculate_fee(&self, amount_in: u64, current_time: i64) -> Result<(u64, u8)> {
+        // Check if we're in early trade window
+        let pool_age = current_time
+            .checked_sub(self.pool_start_time as i64)
+            .ok_or_else(|| {
+                error!(ErrorCode::InvalidTimestamp, "Failed to calculate pool age: {} - {}", 
+                    current_time, self.pool_start_time)
+            })?;
+
+        if pool_age < self.trade_settings.early_trade_window_seconds as i64 {
+            // Apply early trade fee
+            let fee = self.trade_settings.early_trade_fee_bps
+                .checked_mul(amount_in)
+                .ok_or_else(|| {
+                    error!(ErrorCode::Overflow, "Fee calculation overflow: {} * {}", 
+                        self.trade_settings.early_trade_fee_bps, amount_in)
+                })?
+                .checked_div(10000)
+                .ok_or_else(|| {
+                    error!(ErrorCode::Overflow, "Fee calculation division overflow: {} / 10000", 
+                        self.trade_settings.early_trade_fee_bps * amount_in)
+                })?;
+
+            // Ensure minimum fee
+            let fee = self.enforce_min_fee(fee)?;
+            return Ok((fee, FEE_MODE_EARLY_TRADE));
+        }
+
+        // Find applicable fee tier
+        for tier in &self.fee_tiers {
+            if self.volume.volume_24h <= tier.volume_threshold {
+                let fee = tier.fee_bps
+                    .checked_mul(amount_in)
+                    .ok_or(ErrorCode::Overflow)?
+                    .checked_div(10000)
+                    .ok_or(ErrorCode::Overflow)?;
+
+                // Ensure minimum fee
+                let fee = self.enforce_min_fee(fee)?;
+                return Ok((fee, FEE_MODE_TIER_BASED));
+            }
+        }
+
+        // Use default fee if no tier applies
+        let default_fee_bps = self.default_fee_bps.unwrap_or(MINIMUM_FEE_BPS);
+        let fee = default_fee_bps
+            .checked_mul(amount_in)
+            .ok_or(ErrorCode::Overflow)?
+            .checked_div(10000)
+            .ok_or(ErrorCode::Overflow)?;
+
+        // Ensure minimum fee
+        let fee = self.enforce_min_fee(fee)?;
+        Ok((fee, FEE_MODE_NONE))
+    }
+
+    pub fn schedule_emergency_pause(&mut self, current_time: u64) -> Result<()> {
+        let scheduled_time = current_time
+            .checked_add(EMERGENCY_TIMELOCK_SECONDS)
+            .ok_or(ErrorCode::Overflow)?;
+
+        self.emergency_action_scheduled_time = scheduled_time;
+        Ok(())
+    }
+
+    pub fn schedule_emergency_resume(&mut self, current_time: u64) -> Result<()> {
+        let scheduled_time = current_time
+            .checked_add(EMERGENCY_TIMELOCK_SECONDS)
+            .ok_or(ErrorCode::Overflow)?;
+
+        self.emergency_action_scheduled_time = scheduled_time;
+        Ok(())
+    }
+
+    pub fn decay_volume(&mut self, current_time: u64) -> Result<()> {
+        let hours_passed = current_time
+            .checked_sub(self.volume.last_decay)
+            .ok_or_else(|| {
+                error!(ErrorCode::InvalidTimestamp, "Failed to calculate hours passed: {} - {}", 
+                    current_time, self.volume.last_decay)
+            })?
+            .checked_div(3600)
+            .ok_or_else(|| {
+                error!(ErrorCode::Overflow, "Hours calculation overflow: {} / 3600", 
+                    current_time - self.volume.last_decay)
+            })?;
+
+        if hours_passed > 0 {
+            let decay_factor = 100u64.saturating_sub(hours_passed.min(24));
+            let new_volume = self.volume.volume_24h
+                .saturating_mul(decay_factor)
+                .checked_div(100)
+                .ok_or_else(|| {
+                    error!(ErrorCode::Overflow, "Volume decay calculation overflow: {} * {} / 100", 
+                        self.volume.volume_24h, decay_factor)
+                })?;
+
+            self.volume.volume_24h = new_volume;
+            self.volume.last_decay = current_time;
+        }
+
+        Ok(())
+    }
+
+    pub fn validate_fee_tiers(&self, fee_tiers: &[FeeTier]) -> Result<()> {
+        require!(
+            fee_tiers.len() <= MAX_FEE_TIERS,
+            ErrorCode::TooManyFeeTiers,
+            "Fee tiers count {} exceeds maximum allowed {}", 
+            fee_tiers.len(), 
+            MAX_FEE_TIERS
+        );
+
+        // Validate each tier
+        for (i, tier) in fee_tiers.iter().enumerate() {
+            require!(
+                tier.volume_threshold > 0,
+                ErrorCode::InvalidFeeTier,
+                "Fee tier {} has invalid volume threshold: {}", 
+                i, 
+                tier.volume_threshold
+            );
+            require!(
+                tier.fee_bps > 0,
+                ErrorCode::InvalidFeeTier,
+                "Fee tier {} has invalid fee basis points: {}", 
+                i, 
+                tier.fee_bps
+            );
+
+            // Check for strictly increasing thresholds
+            if i > 0 {
+                require!(
+                    tier.volume_threshold > fee_tiers[i - 1].volume_threshold,
+                    ErrorCode::InvalidFeeTier,
+                    "Fee tier {} threshold {} must be greater than previous tier {}",
+                    i,
+                    tier.volume_threshold,
+                    fee_tiers[i - 1].volume_threshold
+                );
+                require!(
+                    tier.fee_bps <= fee_tiers[i - 1].fee_bps,
+                    ErrorCode::InvalidFeeTier,
+                    "Fee tier {} fee {} must be less than or equal to previous tier {}",
+                    i,
+                    tier.fee_bps,
+                    fee_tiers[i - 1].fee_bps
+                );
+            }
+        }
+
+        Ok(())
+    }
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TradeSettings {
     pub max_size_bps: u64,
     pub min_size: u64,
@@ -1457,7 +1626,7 @@ pub struct TradeSettings {
     pub early_trade_window_seconds: u64,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct RateLimitSettings {
     pub window: u64,
     pub count: u32,
@@ -1465,7 +1634,7 @@ pub struct RateLimitSettings {
     pub last_reset: u64,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct CircuitBreakerSettings {
     pub threshold: u64,
     pub window: u64,
@@ -1473,7 +1642,7 @@ pub struct CircuitBreakerSettings {
     pub last_trigger: u64,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct VolumeSettings {
     pub volume_24h: u64,
     pub last_update: u64,
@@ -1481,10 +1650,59 @@ pub struct VolumeSettings {
     pub max_daily: u64,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct ProtectionSettings {
     pub snipe_protection_seconds: u64,
     pub max_price_impact_bps: u64,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct FeeTier {
+    /// Volume threshold for this tier (must be strictly increasing)
+    pub volume_threshold: u64,
+    /// Fee in basis points (must be non-increasing)
+    pub fee_bps: u64,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct PendingUpdate {
+    pub scheduled_time: u64,
+    pub trade_settings: Option<TradeSettingsUpdate>,
+    pub protection_settings: Option<ProtectionSettingsUpdate>,
+    pub fee_settings: Option<FeeSettingsUpdate>,
+    pub state_settings: Option<StateSettingsUpdate>,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct TradeSettingsUpdate {
+    pub early_trade_fee_bps: u64,
+    pub early_trade_window_seconds: u64,
+    pub max_trade_size_bps: u64,
+    pub min_trade_size: u64,
+    pub cooldown_seconds: u64,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct ProtectionSettingsUpdate {
+    pub max_daily_volume: u64,
+    pub max_price_impact_bps: u64,
+    pub circuit_breaker_threshold: u64,
+    pub circuit_breaker_window: u64,
+    pub circuit_breaker_cooldown: u64,
+    pub rate_limit_window: u64,
+    pub rate_limit_max: u32,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct FeeSettingsUpdate {
+    pub fee_tiers: Vec<FeeTier>,
+    pub fee_tiers_locked: bool,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct StateSettingsUpdate {
+    pub is_paused: bool,
+    pub is_emergency_paused: bool,
 }
 
 /// Emitted when a new pool is initialized
@@ -2039,15 +2257,6 @@ mod utils {
         Ok((fallback_fee, FEE_MODE_NONE))
     }
 
-    pub fn calculate_price_impact(amount_in: u64, pool_balance: u64) -> Result<u64> {
-        require!(pool_balance > 0, ErrorCode::InvalidPoolBalance);
-        amount_in
-            .checked_mul(10000)
-            .ok_or(ErrorCode::Overflow)?
-            .checked_div(pool_balance)
-            .ok_or(ErrorCode::Overflow)
-    }
-
     pub fn derive_pool_authority(pool_state: &Pubkey, program_id: &Pubkey) -> Result<(Pubkey, u8)> {
         Pubkey::find_program_address(
             &[b"pool_authority", pool_state.as_ref()],
@@ -2184,7 +2393,7 @@ mod utils {
 }
 
 // Add new struct for trade simulation
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TradeSimulation {
     pub amount_in: u64,
     pub amount_out: u64,
@@ -2230,14 +2439,14 @@ pub struct SimulateTrade<'info> {
 }
 
 // Add enum for blacklist operations
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub enum BlacklistOperation {
     Add,
     Remove,
 }
 
 // Add new structs for view functions
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct SlippageEstimate {
     pub expected_amount_out: u64,
     pub min_amount_out: u64,
@@ -2370,46 +2579,375 @@ pub fn execute_trade(
     amount_in: u64,
     minimum_amount_out: u64,
 ) -> Result<()> {
-    let pool_state = &mut ctx.accounts.pool_state;
+    let state = &mut ctx.accounts.pool_state;
     let current_time = Clock::get()?.unix_timestamp as u64;
 
     // Validate trade parameters
-    validation::validate_trade_parameters(pool_state, amount_in, current_time)?;
+    validation::validate_trade_parameters(state, amount_in, current_time)?;
 
-    // Calculate fee and execute trade
-    let (fee_amount, fee_mode) = utils::calculate_fee(pool_state, amount_in, current_time as i64)?;
-    let amount_after_fee = amount_in.checked_sub(fee_amount)
-        .ok_or(ErrorCode::Overflow)?;
+    // Validate token accounts
+    state.check_token_mint(&ctx.accounts.token_mint)?;
+    state.check_token_account(&ctx.accounts.buyer_token_account, &state.token_mint)?;
+    state.check_token_account(&ctx.accounts.pool_token_account, &state.token_mint)?;
 
-    // Execute the trade
-    let amount_out = execute_token_transfer(
-        ctx.accounts.into(),
-        amount_after_fee,
-        minimum_amount_out,
+    // Calculate fee and amount out
+    let (fee_amount, fee_mode) = state.calculate_fee(amount_in, current_time as i64)?;
+    let amount_out = amount_in
+        .checked_sub(fee_amount)
+        .ok_or_else(|| {
+            error!(ErrorCode::Overflow, "Amount out calculation overflow: {} - {}", 
+                amount_in, fee_amount)
+        })?;
+
+    // Validate against minimum amount out
+    require!(
+        amount_out >= minimum_amount_out,
+        ErrorCode::SlippageExceeded,
+        "Amount out {} is less than minimum {}",
+        amount_out,
+        minimum_amount_out
+    );
+
+    // Validate against pool liquidity
+    require!(
+        amount_out <= ctx.accounts.pool_token_account.amount,
+        ErrorCode::InsufficientPoolBalance,
+        "Amount out {} exceeds pool balance {}",
+        amount_out,
+        ctx.accounts.pool_token_account.amount
+    );
+
+    // Transfer tokens from buyer to pool
+    let cpi_context = with_pool_signer(
+        &ctx.program_id,
+        state,
+        &[ctx.accounts.pool_authority.to_account_info()],
+    )?;
+
+    token::transfer(
+        cpi_context,
+        amount_in,
     )?;
 
     // Update pool state
-    pool_state.total_fees_collected = pool_state.total_fees_collected
-        .checked_add(fee_amount)
-        .ok_or(ErrorCode::Overflow)?;
-    pool_state.trade_settings.last_trade_time = current_time;
-    pool_state.rate_limit.count = pool_state.rate_limit.count
-        .checked_add(1)
-        .ok_or(ErrorCode::Overflow)?;
-    pool_state.volume.volume_24h = pool_state.volume.volume_24h
-        .checked_add(amount_in)
-        .ok_or(ErrorCode::Overflow)?;
+    state.total_fees_collected = state.total_fees_collected.saturating_add(fee_amount);
+    state.trade_settings.last_trade_time = current_time;
+    state.rate_limit.count = state.rate_limit.count.saturating_add(1);
+    state.volume.volume_24h = state.volume.volume_24h.saturating_add(amount_in);
 
-    emit!(TradeExecuted {
-        pool: pool_state.key(),
-        buyer_pubkey: ctx.accounts.buyer.key(),
+    // Emit trade event
+    state.emit_trade_executed(
+        &ctx.accounts.buyer.key(),
         amount_in,
         amount_out,
         fee_amount,
         fee_mode,
+        current_time as i64,
+    );
+
+    Ok(())
+}
+
+pub trait ValidationHelpers {
+    fn check_token_account_ownership(&self, owner: &Pubkey) -> Result<()>;
+    fn check_pool_authority(&self, authority: &Pubkey, program_id: &Pubkey) -> Result<()>;
+    fn check_token_mint(&self, mint: &Account<Mint>) -> Result<()>;
+    fn check_token_account(&self, account: &Account<TokenAccount>, mint: &Pubkey) -> Result<()>;
+}
+
+impl ValidationHelpers for PoolState {
+    fn check_token_account_ownership(&self, owner: &Pubkey) -> Result<()> {
+        validate_condition!(owner == &self.admin, ErrorCode::Unauthorized);
+        Ok(())
+    }
+
+    fn check_pool_authority(&self, authority: &Pubkey, program_id: &Pubkey) -> Result<()> {
+        let (expected_authority, _) = derive_pool_authority(&self.key(), program_id)?;
+        validate_condition!(authority == &expected_authority, ErrorCode::InvalidPoolAuthority);
+        Ok(())
+    }
+
+    fn check_token_mint(&self, mint: &Account<Mint>) -> Result<()> {
+        validate_condition!(mint.key() == self.token_mint, ErrorCode::InvalidTokenMint);
+        validate_condition!(mint.decimals == self.token_decimals, ErrorCode::InvalidTokenDecimals);
+        validate_condition!(mint.freeze_authority.is_none(), ErrorCode::TokenMintHasFreezeAuthority);
+        Ok(())
+    }
+
+    fn check_token_account(&self, account: &Account<TokenAccount>, mint: &Pubkey) -> Result<()> {
+        validate_condition!(account.mint == *mint, ErrorCode::InvalidTokenAccount);
+        validate_condition!(!account.is_delegated(), ErrorCode::TokenAccountDelegated);
+        Ok(())
+    }
+}
+
+// Constants for space calculation
+pub const MAX_PENDING_UPDATE_SIZE: usize = std::mem::size_of::<PendingUpdate>();
+pub const MAX_FEE_TIERS: usize = 100;
+pub const MAX_BLACKLIST_SIZE: usize = 1000;
+
+// Operation enum for better error reporting
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug)]
+pub enum Operation {
+    ExecuteTrade,
+    AddLiquidity,
+    RemoveLiquidity,
+    BlacklistTrader,
+    RemoveFromBlacklist,
+    WithdrawFees,
+    UpdateParameters,
+    EmergencyPause,
+    EmergencyResume,
+}
+
+impl Operation {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Operation::ExecuteTrade => "execute_trade",
+            Operation::AddLiquidity => "add_liquidity",
+            Operation::RemoveLiquidity => "remove_liquidity",
+            Operation::BlacklistTrader => "blacklist_trader",
+            Operation::RemoveFromBlacklist => "remove_from_blacklist",
+            Operation::WithdrawFees => "withdraw_fees",
+            Operation::UpdateParameters => "update_parameters",
+            Operation::EmergencyPause => "emergency_pause",
+            Operation::EmergencyResume => "emergency_resume",
+        }
+    }
+}
+
+// Helper function for fee calculation
+pub fn calculate_fee_from_bps(amount: u64, bps: u64) -> Result<u64> {
+    amount
+        .checked_mul(bps)
+        .ok_or(ErrorCode::Overflow)?
+        .checked_div(10000)
+        .ok_or(ErrorCode::Overflow)
+}
+
+// Event emission helpers
+pub trait EventHelpers {
+    fn emit_pool_initialized(&self, admin: &Pubkey, ts: i64);
+    fn emit_liquidity_added(&self, admin: &Pubkey, amount: u64, ts: i64);
+    fn emit_liquidity_removed(&self, admin: &Pubkey, amount: u64, ts: i64);
+    fn emit_trade_executed(&self, buyer: &Pubkey, amount_in: u64, amount_out: u64, fee_amount: u64, fee_mode: u8, ts: i64);
+    fn emit_operation_failed(&self, operation: Operation, reason: &str, ts: i64);
+}
+
+impl EventHelpers for PoolState {
+    fn emit_pool_initialized(&self, admin: &Pubkey, ts: i64) {
+        emit!(PoolInitialized {
+            pool: self.key(),
+            admin_pubkey: *admin,
+            ts,
+        });
+    }
+
+    fn emit_liquidity_added(&self, admin: &Pubkey, amount: u64, ts: i64) {
+        emit!(LiquidityAdded {
+            pool: self.key(),
+            admin_pubkey: *admin,
+            amount,
+            ts,
+        });
+    }
+
+    fn emit_liquidity_removed(&self, admin: &Pubkey, amount: u64, ts: i64) {
+        emit!(LiquidityRemoved {
+            pool: self.key(),
+            admin_pubkey: *admin,
+            amount,
+            ts,
+        });
+    }
+
+    fn emit_trade_executed(&self, buyer: &Pubkey, amount_in: u64, amount_out: u64, fee_amount: u64, fee_mode: u8, ts: i64) {
+        emit!(TradeExecuted {
+            pool: self.key(),
+            buyer_pubkey: *buyer,
+            amount_in,
+            amount_out,
+            fee_amount,
+            fee_mode,
+            ts,
+            token_mint: self.token_mint,
+        });
+    }
+
+    fn emit_operation_failed(&self, operation: Operation, reason: &str, ts: i64) {
+        emit!(OperationFailed {
+            pool: self.key(),
+            operation: operation.as_str().to_string(),
+            reason: reason.to_string(),
+            ts,
+        });
+    }
+}
+
+// Update calculate_space to use constants
+impl PoolState {
+    pub fn calculate_space() -> usize {
+        let size = 8 + // discriminator
+            1 + // version
+            1 + // migration_flag
+            1 + // is_initialized
+            32 + // admin
+            32 + // emergency_admin
+            32 + // token_mint
+            1 + // token_decimals
+            8 + // total_fees_collected
+            8 + // total_liquidity
+            1 + // is_paused
+            1 + // is_emergency_paused
+            1 + // is_finalized
+            8 + // pool_start_time
+            8 + // last_update
+            8 + // last_admin_update
+            8 + // emergency_action_scheduled_time
+            1 + // pending_update Option discriminator
+            MAX_PENDING_UPDATE_SIZE + // pending_update
+            8 + // trade_settings max_size_bps
+            8 + // trade_settings min_size
+            8 + // trade_settings cooldown_seconds
+            8 + // trade_settings last_trade_time
+            8 + // trade_settings early_trade_fee_bps
+            8 + // trade_settings early_trade_window_seconds
+            8 + // rate_limit window
+            4 + // rate_limit count
+            4 + // rate_limit max
+            8 + // rate_limit last_reset
+            8 + // circuit_breaker threshold
+            8 + // circuit_breaker window
+            8 + // circuit_breaker cooldown
+            8 + // circuit_breaker last_trigger
+            8 + // volume volume_24h
+            8 + // volume last_update
+            8 + // volume last_decay
+            8 + // volume max_daily
+            8 + // protection snipe_protection_seconds
+            8 + // protection max_price_impact_bps
+            4 + // fee_tiers Vec length
+            (32 * MAX_FEE_TIERS) + // fee_tiers Vec capacity
+            1 + // fee_tiers_locked
+            1 + // default_fee_bps Option discriminator
+            8 + // default_fee_bps
+            4 + // trader_blacklist Vec length
+            (32 * MAX_BLACKLIST_SIZE); // trader_blacklist Vec capacity
+
+        if size > 10240 {
+            panic!("Account size {} exceeds Solana's maximum size of 10240 bytes", size);
+        }
+
+        size
+    }
+}
+
+impl<'info> Drop for ReentrancyGuard<'info> {
+    fn drop(&mut self) {
+        // Reset the reentrancy guard when the scope ends
+        if let Some(guard) = self.guard.as_ref() {
+            guard.try_borrow_mut().map(|mut guard| {
+                *guard = false;
+            }).ok();
+        }
+    }
+}
+
+pub fn withdraw_collected_fees(ctx: Context<contexts::WithdrawCollectedFees>) -> Result<()> {
+    let state = &mut ctx.accounts.pool_state;
+    let current_time = Clock::get()?.unix_timestamp as u64;
+
+    // Validate admin and check cooldown
+    validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+
+    // Validate token accounts
+    state.check_token_mint(&ctx.accounts.token_mint)?;
+    state.check_token_account(&ctx.accounts.pool_token_account, &state.token_mint)?;
+    state.check_token_account(&ctx.accounts.admin_token_account, &state.token_mint)?;
+
+    // Validate admin token account ownership
+    require!(
+        ctx.accounts.admin_token_account.owner == ctx.accounts.admin.key(),
+        ErrorCode::InvalidTokenAccount,
+        "Admin token account owner {} does not match admin {}",
+        ctx.accounts.admin_token_account.owner,
+        ctx.accounts.admin.key()
+    );
+
+    // Check if fees are available
+    require!(
+        state.total_fees_collected > 0,
+        ErrorCode::NoFeesAvailable,
+        "No fees available to withdraw"
+    );
+
+    // Transfer fees from pool to admin
+    let cpi_context = with_pool_signer(
+        &ctx.program_id,
+        state,
+        &[ctx.accounts.pool_authority.to_account_info()],
+    )?;
+
+    token::transfer(
+        cpi_context,
+        state.total_fees_collected,
+    )?;
+
+    // Update pool state
+    state.total_fees_collected = 0;
+    state.last_update = current_time;
+
+    // Emit event
+    emit!(FeesWithdrawn {
+        pool: state.key(),
+        admin_pubkey: state.admin,
+        amount: state.total_fees_collected,
         ts: current_time as i64,
-        token_mint: pool_state.token_mint,
     });
 
     Ok(())
+}
+
+#[event]
+pub struct TradeSettingsUpdated {
+    pub pool: Pubkey,
+    pub admin_pubkey: Pubkey,
+    pub early_trade_fee_bps: u64,
+    pub early_trade_window_seconds: u64,
+    pub max_trade_size_bps: u64,
+    pub min_trade_size: u64,
+    pub cooldown_seconds: u64,
+    pub ts: i64,
+}
+
+#[event]
+pub struct ProtectionSettingsUpdated {
+    pub pool: Pubkey,
+    pub admin_pubkey: Pubkey,
+    pub max_daily_volume: u64,
+    pub max_price_impact_bps: u64,
+    pub circuit_breaker_threshold: u64,
+    pub circuit_breaker_window: u64,
+    pub circuit_breaker_cooldown: u64,
+    pub rate_limit_window: u64,
+    pub rate_limit_max: u32,
+    pub ts: i64,
+}
+
+#[event]
+pub struct FeeSettingsUpdated {
+    pub pool: Pubkey,
+    pub admin_pubkey: Pubkey,
+    pub fee_tiers_count: usize,
+    pub fee_tiers_locked: bool,
+    pub ts: i64,
+}
+
+#[event]
+pub struct StateSettingsUpdated {
+    pub pool: Pubkey,
+    pub admin_pubkey: Pubkey,
+    pub is_paused: bool,
+    pub is_emergency_paused: bool,
+    pub ts: i64,
 }
