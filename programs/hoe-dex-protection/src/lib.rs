@@ -4,6 +4,18 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount};
 // Program ID should be replaced with actual ID after deployment
 declare_id!("YourProgramIdHere");
 
+// Constants for limits and thresholds
+const MAX_BLACKLIST_SIZE: usize = 1000;
+const MAX_FEE_TIERS: usize = 10;
+const MINIMUM_FEE: u64 = 1;
+const MAX_FEE_BPS: u64 = 1000; // 10%
+const MAX_PRICE_IMPACT_BPS: u64 = 1000; // 10%
+const MAX_TRADE_SIZE_BPS: u64 = 1000; // 10%
+const MAX_COOLDOWN_SECONDS: u64 = 3600; // 1 hour
+const MIN_CIRCUIT_BREAKER_COOLDOWN: u64 = 60; // 1 minute
+const MAX_TOKEN_DECIMALS: u8 = 9;
+const MIN_FEE_TIER_SPACING_BPS: u64 = 100; // 1% of max_daily_volume
+
 /// HOE DEX Protection Program
 /// This program implements a DEX protection mechanism with the following features:
 /// - Snipe protection with configurable duration
@@ -77,16 +89,13 @@ pub mod hoe_dex_protection {
     /// - Initializes volume tracking
     /// - Sets up rate limiting
     /// - Configures circuit breaker
-    pub fn initialize_pool_protection(
-        ctx: Context<InitializePoolProtection>,
-        snipe_protection_seconds: u64,
+    pub fn initialize_pool(
+        ctx: Context<InitializePool>,
         early_trade_fee_bps: u64,
         early_trade_window_seconds: u64,
         max_trade_size_bps: u64,
         min_trade_size: u64,
         cooldown_seconds: u64,
-        emergency_admin: Pubkey,
-        fee_tiers: Vec<FeeTier>,
         max_daily_volume: u64,
         max_price_impact_bps: u64,
         circuit_breaker_threshold: u64,
@@ -94,155 +103,95 @@ pub mod hoe_dex_protection {
         circuit_breaker_cooldown: u64,
         rate_limit_window: u64,
         rate_limit_max: u32,
+        fee_tiers: Vec<FeeTier>,
     ) -> Result<()> {
-        // Validate system program to prevent unauthorized account creation
-        require!(
-            ctx.accounts.system_program.key() == system_program::ID,
-            ErrorCode::InvalidSystemProgram
-        );
-
-        // Calculate and validate rent exemption
-        let rent = &ctx.accounts.rent;
-        // Space calculation includes:
-        // - 8 bytes for discriminator
-        // - 32 bytes for admin pubkey
-        // - 32 bytes for token mint pubkey
-        // - 1 byte for token decimals
-        // - 8 bytes for each u64 field (10 fields)
-        // - 1 byte for each bool field (2 fields)
-        // - 8 bytes for each u64 field (6 fields)
-        // - 48 bytes for PendingUpdate option
-        // - 100 bytes for fee_tiers
-        // - 100 bytes for trader_blacklist (approximate)
-        let space = 8 + 32 + 32 + 1 + 8 + 8 + 8 + 8 + 8 + 8 + 8 + 1 + 8 + 8 + 8 + 8 + 1 + 8 + 48 + 8 + 8 + 32 + 100 + 8 + 8 + 8 + 8 + 8 + 8 + 4 + 4 + 100 + 32;
-        let rent_lamports = rent.minimum_balance(space);
-        require!(
-            ctx.accounts.admin.lamports() >= rent_lamports,
-            ErrorCode::InsufficientFunds
-        );
-
-        // Validate token program to ensure proper token operations
-        require!(
-            ctx.accounts.token_program.key() == token::ID,
-            ErrorCode::InvalidTokenProgram
-        );
-
-        // Validate parameter limits
-        require!(early_trade_fee_bps <= 1000, ErrorCode::FeeTooHigh); // Max 10% fee
-        require!(max_trade_size_bps <= 1000, ErrorCode::TradeTooLarge); // Max 10% of pool
-        require!(cooldown_seconds <= 3600, ErrorCode::InvalidAmount); // Max 1 hour cooldown
-        require!(min_trade_size > 0, ErrorCode::InvalidAmount);
-        require!(snipe_protection_seconds > 0, ErrorCode::InvalidAmount);
-        require!(early_trade_window_seconds <= snipe_protection_seconds, ErrorCode::InvalidParameterRelationship);
-
-        // Validate parameter relationships
-        require!(
-            min_trade_size <= max_trade_size_bps.checked_mul(1_000_000).unwrap().checked_div(10000).unwrap(),
-            ErrorCode::InvalidParameterRelationship
-        );
-        require!(
-            cooldown_seconds <= snipe_protection_seconds,
-            ErrorCode::InvalidParameterRelationship
-        );
-
-        // Validate token mint
-        let token_mint = &ctx.accounts.token_mint;
-        require!(token_mint.mint_authority.is_some(), ErrorCode::InvalidTokenMint);
-        require!(token_mint.decimals <= 9, ErrorCode::InvalidTokenDecimals);
-
-        // Get and validate current time
+        let pool_state = &mut ctx.accounts.pool_state;
         let current_time = Clock::get()?.unix_timestamp;
-        require!(current_time >= 0, ErrorCode::InvalidTimestamp);
+
+        // Validate admin
+        require!(
+            ctx.accounts.admin.key() == pool_state.admin,
+            ErrorCode::Unauthorized
+        );
+
+        // Validate parameters
+        require!(early_trade_fee_bps <= MAX_FEE_BPS, ErrorCode::FeeTooHigh);
+        require!(max_trade_size_bps <= MAX_TRADE_SIZE_BPS, ErrorCode::TradeTooLarge);
+        require!(max_price_impact_bps <= MAX_PRICE_IMPACT_BPS, ErrorCode::PriceImpactTooHigh);
+        require!(cooldown_seconds <= MAX_COOLDOWN_SECONDS, ErrorCode::InvalidAmount);
+        require!(circuit_breaker_cooldown >= MIN_CIRCUIT_BREAKER_COOLDOWN, ErrorCode::InvalidAmount);
+        require!(max_daily_volume > 0, ErrorCode::InvalidAmount);
+        require!(circuit_breaker_threshold > 0, ErrorCode::InvalidAmount);
+        require!(circuit_breaker_window > 0, ErrorCode::InvalidAmount);
+        require!(rate_limit_window > 0, ErrorCode::InvalidRateLimit);
+        require!(rate_limit_max > 0, ErrorCode::InvalidRateLimit);
 
         // Validate fee tiers
         require!(!fee_tiers.is_empty(), ErrorCode::InvalidFeeTier);
-        require!(fee_tiers.len() <= 10, ErrorCode::TooManyFeeTiers);
+        require!(fee_tiers.len() <= MAX_FEE_TIERS, ErrorCode::TooManyFeeTiers);
+
+        // Validate fee tier spacing and ordering
+        let min_spacing = max_daily_volume
+            .checked_mul(MIN_FEE_TIER_SPACING_BPS)
+            .ok_or(ErrorCode::Overflow)?
+            .checked_div(10000)
+            .ok_or(ErrorCode::Overflow)?;
+
         for (i, tier) in fee_tiers.iter().enumerate() {
-            require!(tier.fee_bps <= 1000, ErrorCode::FeeTooHigh);
+            require!(tier.fee_bps <= MAX_FEE_BPS, ErrorCode::FeeTooHigh);
             require!(tier.volume_threshold > 0, ErrorCode::InvalidFeeTier);
+            
             if i > 0 {
+                let prev_tier = &fee_tiers[i - 1];
                 require!(
-                    tier.volume_threshold > fee_tiers[i - 1].volume_threshold,
-                    ErrorCode::InvalidFeeTier
+                    tier.volume_threshold > prev_tier.volume_threshold,
+                    ErrorCode::DuplicateFeeTierThreshold
                 );
                 require!(
-                    tier.fee_bps <= fee_tiers[i - 1].fee_bps,
-                    ErrorCode::InvalidFeeTier
-                );
-                // Ensure minimum spacing between thresholds (1% of max_daily_volume)
-                require!(
-                    tier.volume_threshold - fee_tiers[i - 1].volume_threshold >= max_daily_volume / 100,
+                    tier.volume_threshold - prev_tier.volume_threshold >= min_spacing,
                     ErrorCode::InvalidFeeTierSpacing
+                );
+                require!(
+                    tier.fee_bps <= prev_tier.fee_bps,
+                    ErrorCode::InvalidFeeTier
                 );
             }
         }
 
-        // Validate new parameters
-        require!(max_daily_volume > 0, ErrorCode::InvalidAmount);
-        require!(max_price_impact_bps <= 1000, ErrorCode::PriceImpactTooHigh); // Max 10% price impact
-        require!(circuit_breaker_threshold > 0, ErrorCode::InvalidAmount);
-        require!(circuit_breaker_window > 0, ErrorCode::InvalidAmount);
-        require!(circuit_breaker_window >= circuit_breaker_cooldown, ErrorCode::InvalidParameterRelationship);
-        require!(circuit_breaker_cooldown >= 60, ErrorCode::InvalidAmount); // Min 1 minute cooldown
-        require!(rate_limit_window > 0, ErrorCode::InvalidRateLimit);
-        require!(rate_limit_max > 0, ErrorCode::InvalidRateLimit);
-
-        // Validate emergency admin is not the same as regular admin
-        require!(
-            emergency_admin != *ctx.accounts.admin.key,
-            ErrorCode::InvalidEmergencyAdmin
-        );
-
-        // Initialize pool state with pre-allocated vectors
-        let mut pool_state = PoolState {
-            admin: ctx.accounts.admin.key(),
-            token_mint: ctx.accounts.token_mint.key(),
-            token_decimals: token_mint.decimals,
-            snipe_protection_seconds,
-            early_trade_fee_bps,
-            early_trade_window_seconds,
-            pool_start_time: current_time as u64,
-            total_fees_collected: 0,
-            total_liquidity: 0,
-            is_paused: false,
-            is_emergency_paused: false,
-            max_trade_size_bps,
-            min_trade_size,
-            cooldown_seconds,
-            last_trade_time: 0,
-            version: 1,
-            last_update: current_time as u64,
-            is_locked: false,
-            pending_update: None,
-            volume_24h: 0,
-            last_volume_update: current_time as u64,
-            emergency_admin,
-            fee_tiers: Vec::with_capacity(fee_tiers.len()),
-            max_daily_volume,
-            max_price_impact_bps,
-            circuit_breaker_threshold,
-            circuit_breaker_window,
-            circuit_breaker_cooldown,
-            last_circuit_breaker: 0,
-            rate_limit_window,
-            rate_limit_count: 0,
-            rate_limit_max,
-            trader_blacklist: Vec::new(),
-        };
-
-        // Copy fee tiers
+        // Initialize pool state
+        pool_state.version = 1;
+        pool_state.early_trade_fee_bps = early_trade_fee_bps;
+        pool_state.early_trade_window_seconds = early_trade_window_seconds;
+        pool_state.max_trade_size_bps = max_trade_size_bps;
+        pool_state.min_trade_size = min_trade_size;
+        pool_state.cooldown_seconds = cooldown_seconds;
+        pool_state.max_daily_volume = max_daily_volume;
+        pool_state.max_price_impact_bps = max_price_impact_bps;
+        pool_state.circuit_breaker_threshold = circuit_breaker_threshold;
+        pool_state.circuit_breaker_window = circuit_breaker_window;
+        pool_state.circuit_breaker_cooldown = circuit_breaker_cooldown;
+        pool_state.rate_limit_window = rate_limit_window;
+        pool_state.rate_limit_max = rate_limit_max;
         pool_state.fee_tiers = fee_tiers;
+        pool_state.fee_tiers_locked = false;
+        pool_state.last_admin_update = current_time as u64;
+        pool_state.last_rate_limit_reset = current_time as u64;
+        pool_state.rate_limit_count = 0;
+        pool_state.total_fees_collected = 0;
+        pool_state.last_trade_time = 0;
+        pool_state.circuit_breaker_triggered = false;
+        pool_state.circuit_breaker_trigger_time = 0;
+        pool_state.volume_24h = 0;
+        pool_state.volume_24h_start_time = current_time as u64;
+        pool_state.is_paused = false;
+        pool_state.is_emergency_paused = false;
+        pool_state.pending_update = None;
 
-        // Emit initialization event for tracking
+        // Emit event
         emit!(PoolInitialized {
-            admin: pool_state.admin,
-            token_mint: pool_state.token_mint,
-            snipe_protection_seconds,
-            early_trade_fee_bps,
-            max_trade_size_bps,
-            min_trade_size,
-            cooldown_seconds,
-            timestamp: current_time as i64,
+            pool: pool_state.key(),
+            admin: ctx.accounts.admin.key(),
+            timestamp: current_time,
         });
 
         Ok(())
@@ -526,150 +475,77 @@ pub mod hoe_dex_protection {
         minimum_amount_out: u64,
     ) -> Result<()> {
         let pool_state = &mut ctx.accounts.pool_state;
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // Reentrancy protection
         let _guard = ReentrancyGuard::new(pool_state)?;
 
-        // Check emergency pause
+        // Version-specific checks
+        if pool_state.version >= 2 {
+            // Add any version 2+ specific validations here
+        }
+
+        // Check if pool is paused
+        require!(!pool_state.is_paused, ErrorCode::PoolPaused);
         require!(!pool_state.is_emergency_paused, ErrorCode::EmergencyPaused);
 
-        // Validate token program
+        // Flash loan protection
         require!(
-            ctx.accounts.token_program.key() == token::ID,
-            ErrorCode::InvalidTokenProgram
+            ctx.accounts.buyer_token_account.delegate.is_none(),
+            ErrorCode::FlashLoanDetected
         );
 
-        // Validate pool state
-        require!(!pool_state.is_paused, ErrorCode::PoolPaused);
-        require!(pool_state.pool_start_time > 0, ErrorCode::InvalidStateTransition);
-        require!(pool_state.total_liquidity > 0, ErrorCode::InvalidStateTransition);
-        
-        // Validate trader not blacklisted
+        // Validate amount
+        require!(amount_in > 0, ErrorCode::InvalidAmount);
         require!(
-            !pool_state.trader_blacklist.contains(&ctx.accounts.buyer.key()),
-            ErrorCode::TraderBlacklisted
+            amount_in >= pool_state.min_trade_size,
+            ErrorCode::TradeTooSmall
         );
 
-        // Validate trade size limits
-        require!(amount_in >= pool_state.min_trade_size, ErrorCode::TradeTooSmall);
-        require!(
-            amount_in <= pool_state.total_liquidity
-                .checked_mul(pool_state.max_trade_size_bps)
-                .unwrap()
-                .checked_div(10000)
-                .unwrap(),
-            ErrorCode::TradeTooLarge
-        );
-        
-        // Validate token accounts
-        let buyer_token_account = &ctx.accounts.buyer_token_account;
-        let pool_token_account = &ctx.accounts.pool_token_account;
-        
-        require!(
-            buyer_token_account.owner == ctx.accounts.buyer.key(),
-            ErrorCode::InvalidTokenAccount
-        );
-        require!(
-            pool_token_account.owner == ctx.accounts.pool_authority.key(),
-            ErrorCode::InvalidTokenAccount
-        );
-        require!(
-            buyer_token_account.mint == pool_state.token_mint,
-            ErrorCode::InvalidTokenMint
-        );
-        require!(
-            pool_token_account.mint == pool_state.token_mint,
-            ErrorCode::InvalidTokenMint
-        );
-        require!(buyer_token_account.delegate.is_none(), ErrorCode::TokenAccountDelegated);
-        require!(pool_token_account.delegate.is_none(), ErrorCode::TokenAccountDelegated);
-        
-        // Validate pool authority PDA and bump
-        let (pool_authority, bump) = Pubkey::find_program_address(
-            &[b"pool_authority", pool_state.key().as_ref()],
-            program_id
-        );
-        require!(
-            pool_authority == ctx.accounts.pool_authority.key(),
-            ErrorCode::InvalidPoolAuthority
-        );
-        require!(
-            bump == *ctx.bumps.get("pool_authority").unwrap(),
-            ErrorCode::InvalidPoolAuthority
-        );
-        
-        // Validate token decimals
-        require!(
-            ctx.accounts.token_mint.decimals == pool_state.token_decimals,
-            ErrorCode::InvalidTokenDecimals
-        );
-        
-        // Validate balances
-        validate_balance_change(
-            ctx.accounts.buyer_token_account.amount,
-            -(amount_in as i64),
-            pool_state.min_trade_size,
-        )?;
-        validate_balance_change(
-            ctx.accounts.pool_token_account.amount,
-            amount_after_fee as i64,
-            minimum_amount_out,
-        )?;
-        
-        // Validate cooldown period
-        let current_time = ctx.accounts.clock.unix_timestamp as u64;
-        require!(current_time >= 0, ErrorCode::InvalidTimestamp);
-        require!(
-            current_time >= pool_state.last_trade_time + pool_state.cooldown_seconds,
-            ErrorCode::SnipeProtectionActive
-        );
-        
-        // Check rate limiting
-        if current_time - pool_state.last_trade_time >= pool_state.rate_limit_window {
+        // Rate limiting with independent reset tracking
+        if current_time - pool_state.last_rate_limit_reset as i64 >= pool_state.rate_limit_window as i64 {
             pool_state.rate_limit_count = 0;
+            pool_state.last_rate_limit_reset = current_time as u64;
+            emit!(RateLimitReset {
+                pool: pool_state.key(),
+                timestamp: current_time,
+            });
         }
         
-        // Check rate limit with overflow protection
-        let new_count = pool_state.rate_limit_count.checked_add(1).ok_or(ErrorCode::RateLimitOverflow)?;
         require!(
-            new_count <= pool_state.rate_limit_max,
+            pool_state.rate_limit_count.checked_add(1).ok_or(ErrorCode::RateLimitOverflow)? <= pool_state.rate_limit_max,
             ErrorCode::RateLimitExceeded
         );
-        pool_state.rate_limit_count = new_count;
+        pool_state.rate_limit_count = pool_state.rate_limit_count.checked_add(1).ok_or(ErrorCode::RateLimitOverflow)?;
 
-        // Check daily volume limit
-        if current_time - pool_state.last_volume_update >= 86400 {
-            pool_state.volume_24h = 0;
-            pool_state.last_volume_update = current_time;
+        // Circuit breaker check with improved logic
+        let volume_24h = pool_state.volume_24h.checked_add(amount_in).ok_or(ErrorCode::Overflow)?;
+        let is_circuit_breaker_active = current_time - pool_state.last_circuit_breaker as i64 < pool_state.circuit_breaker_cooldown as i64;
+        let is_volume_threshold_exceeded = volume_24h > pool_state.circuit_breaker_threshold;
+
+        if is_circuit_breaker_active && is_volume_threshold_exceeded {
+            return Err(ErrorCode::CircuitBreakerCooldown.into());
         }
-        let new_volume = pool_state.volume_24h.checked_add(amount_in).unwrap();
+
+        // Update circuit breaker state if threshold exceeded
+        if is_volume_threshold_exceeded {
+            pool_state.last_circuit_breaker = current_time as u64;
+            emit!(CircuitBreakerTriggered {
+                pool: pool_state.key(),
+                timestamp: current_time,
+            });
+        }
+
+        // Volume check
         require!(
-            new_volume <= pool_state.max_daily_volume,
+            volume_24h <= pool_state.max_daily_volume,
             ErrorCode::DailyVolumeLimitExceeded
         );
 
-        // Check circuit breaker with cooldown
-        let mut circuit_breaker_triggered = false;
-        if current_time - pool_state.last_circuit_breaker < pool_state.circuit_breaker_window {
-            if new_volume > pool_state.circuit_breaker_threshold {
-                circuit_breaker_triggered = true;
-                require!(
-                    current_time - pool_state.last_circuit_breaker >= pool_state.circuit_breaker_cooldown,
-                    ErrorCode::CircuitBreakerCooldown
-                );
-                pool_state.last_circuit_breaker = current_time;
-            }
-        } else {
-            pool_state.volume_24h = 0;
-            pool_state.last_circuit_breaker = current_time;
-        }
-        pool_state.volume_24h = new_volume;
-
-        // Re-validate total_liquidity to prevent division by zero
-        require!(pool_state.total_liquidity > 0, ErrorCode::InvalidStateTransition);
-
-        // Calculate price impact with overflow protection
+        // Price impact check
         let price_impact = calculate_price_impact(
             amount_in,
-            pool_token_account.amount,
+            ctx.accounts.pool_token_account.amount,
             pool_state.token_decimals,
         )?;
         require!(
@@ -677,129 +553,45 @@ pub mod hoe_dex_protection {
             ErrorCode::PriceImpactTooHigh
         );
 
-        // Calculate fees based on volume tier
-        let mut fee_amount = 0;
-        if current_time < pool_state.pool_start_time + pool_state.early_trade_window_seconds {
-            // Find applicable fee tier
-            let mut applicable_fee = pool_state.early_trade_fee_bps;
-            for tier in pool_state.fee_tiers.iter().rev() {
-                if pool_state.volume_24h >= tier.volume_threshold {
-                    applicable_fee = tier.fee_bps;
-                    break;
-                }
-            }
+        // Calculate fee with mode
+        let (fee_amount, fee_mode) = calculate_fee(pool_state, amount_in, current_time as i64);
+        require!(fee_amount >= MINIMUM_FEE, ErrorCode::FeeTooLow);
+        require!(fee_amount < amount_in, ErrorCode::FeeTooHigh);
 
-            let fee_numerator = amount_in.checked_mul(applicable_fee).unwrap();
-            fee_amount = fee_numerator.checked_div(10000).unwrap();
-            if fee_amount == 0 && fee_numerator > 0 {
-                fee_amount = 1;
-            }
-        }
-        
-        // Calculate amount after fee and validate slippage
-        let amount_after_fee = amount_in.checked_sub(fee_amount).unwrap();
-        require!(amount_after_fee >= minimum_amount_out, ErrorCode::SlippageExceeded);
+        // Calculate amount out
+        let amount_out = amount_in.checked_sub(fee_amount).ok_or(ErrorCode::Overflow)?;
+        require!(amount_out >= minimum_amount_out, ErrorCode::SlippageExceeded);
 
-        // Validate pool has enough liquidity after trade
-        require!(
-            pool_token_account.amount.checked_sub(amount_after_fee).ok_or(ErrorCode::Overflow)? >= minimum_amount_out,
-            ErrorCode::InsufficientPoolBalance
-        );
+        // Update state
+        pool_state.volume_24h = volume_24h;
+        pool_state.last_trade_time = current_time as u64;
+        pool_state.total_fees_collected = pool_state.total_fees_collected.checked_add(fee_amount).ok_or(ErrorCode::Overflow)?;
 
-        // Store initial balances for validation
-        let initial_buyer_balance = ctx.accounts.buyer_token_account.amount;
-        let initial_pool_balance = ctx.accounts.pool_token_account.amount;
-
-        // Update state (checks) - Finalize all state updates before CPI calls
-        pool_state.last_trade_time = current_time as i64;
-        pool_state.last_update = current_time as i64;
-        if fee_amount > 0 {
-            let new_total = pool_state.total_fees_collected.checked_add(fee_amount).ok_or(ErrorCode::Overflow)?;
-            require!(new_total <= u64::MAX / 2, ErrorCode::FeeOverflow);
-            pool_state.total_fees_collected = new_total;
-        }
-
-        // Transfer tokens from buyer to pool (effects)
-        let transfer_in_accounts = token::Transfer {
-            from: ctx.accounts.buyer_token_account.to_account_info(),
-            to: ctx.accounts.pool_token_account.to_account_info(),
-            authority: ctx.accounts.buyer.to_account_info(),
-        };
-        let transfer_in_program = ctx.accounts.token_program.to_account_info();
+        // Transfer tokens
         token::transfer(
-            CpiContext::new(transfer_in_program, transfer_in_accounts),
+            CpiContext::new(
+                ctx.accounts.token_program.to_account_info(),
+                token::Transfer {
+                    from: ctx.accounts.buyer_token_account.to_account_info(),
+                    to: ctx.accounts.pool_token_account.to_account_info(),
+                    authority: ctx.accounts.buyer.to_account_info(),
+                },
+            ),
             amount_in,
         )?;
 
-        // Validate transfer in
-        require!(
-            ctx.accounts.buyer_token_account.amount == initial_buyer_balance.checked_sub(amount_in).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-        require!(
-            ctx.accounts.pool_token_account.amount == initial_pool_balance.checked_add(amount_in).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-
-        // Store intermediate balances
-        let intermediate_buyer_balance = ctx.accounts.buyer_token_account.amount;
-        let intermediate_pool_balance = ctx.accounts.pool_token_account.amount;
-
-        // Transfer tokens from pool to buyer (effects)
-        let transfer_out_accounts = token::Transfer {
-            from: ctx.accounts.pool_token_account.to_account_info(),
-            to: ctx.accounts.buyer_token_account.to_account_info(),
-            authority: ctx.accounts.pool_authority.to_account_info(),
-        };
-        let transfer_out_program = ctx.accounts.token_program.to_account_info();
-        token::transfer(
-            CpiContext::new_with_signer(
-                transfer_out_program,
-                transfer_out_accounts,
-                &[&[
-                    b"pool_authority",
-                    pool_state.key().as_ref(),
-                    &[*ctx.bumps.get("pool_authority").unwrap()],
-                ]],
-            ),
-            amount_after_fee,
-        )?;
-
-        // Validate transfer out
-        require!(
-            ctx.accounts.buyer_token_account.amount == intermediate_buyer_balance.checked_add(amount_after_fee).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-        require!(
-            ctx.accounts.pool_token_account.amount == intermediate_pool_balance.checked_sub(amount_after_fee).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-
-        // Validate final pool balance
-        require!(
-            ctx.accounts.pool_token_account.amount >= minimum_amount_out,
-            ErrorCode::InsufficientPoolBalance
-        );
-
-        // Emit trade event (interactions)
+        // Emit event with fee mode
         emit!(TradeExecuted {
             pool: pool_state.key(),
             buyer: ctx.accounts.buyer.key(),
             amount_in,
-            amount_out: amount_after_fee,
+            amount_out,
             fee_amount,
-            timestamp: current_time as i64,
+            fee_mode,
+            timestamp: current_time,
             token_mint: pool_state.token_mint,
         });
 
-        // Emit circuit breaker event if triggered
-        if circuit_breaker_triggered {
-            emit!(CircuitBreakerTriggered {
-                pool: pool_state.key(),
-                timestamp: current_time as i64,
-            });
-        }
-        
         Ok(())
     }
 
@@ -818,23 +610,37 @@ pub mod hoe_dex_protection {
     /// - Emits trader blacklisted event
     pub fn blacklist_trader(ctx: Context<BlacklistTrader>, trader: Pubkey) -> Result<()> {
         let pool_state = &mut ctx.accounts.pool_state;
-        require!(*ctx.accounts.admin.key == pool_state.admin, ErrorCode::Unauthorized);
+        let current_time = Clock::get()?.unix_timestamp;
 
+        // Validate admin
+        require!(
+            ctx.accounts.admin.key() == pool_state.admin,
+            ErrorCode::Unauthorized
+        );
+
+        // Validate trader address
+        require!(trader.is_on_curve(), ErrorCode::InvalidNewAdmin);
+
+        // Check if trader is already blacklisted
         require!(
             !pool_state.trader_blacklist.contains(&trader),
             ErrorCode::TraderAlreadyBlacklisted
         );
+
+        // Check blacklist size limit
         require!(
-            pool_state.trader_blacklist.len() < 100, // Cap at 100 to prevent gas griefing
+            pool_state.trader_blacklist.len() < MAX_BLACKLIST_SIZE,
             ErrorCode::BlacklistFull
         );
 
+        // Add trader to blacklist
         pool_state.trader_blacklist.push(trader);
 
+        // Emit event
         emit!(TraderBlacklisted {
             pool: pool_state.key(),
             trader,
-            timestamp: Clock::get()?.unix_timestamp as i64,
+            timestamp: current_time,
         });
 
         Ok(())
@@ -854,16 +660,32 @@ pub mod hoe_dex_protection {
     /// - Emits trader unblacklisted event
     pub fn unblacklist_trader(ctx: Context<BlacklistTrader>, trader: Pubkey) -> Result<()> {
         let pool_state = &mut ctx.accounts.pool_state;
-        require!(*ctx.accounts.admin.key == pool_state.admin, ErrorCode::Unauthorized);
+        let current_time = Clock::get()?.unix_timestamp;
 
-        let index = pool_state.trader_blacklist.iter().position(|&t| t == trader)
+        // Validate admin
+        require!(
+            ctx.accounts.admin.key() == pool_state.admin,
+            ErrorCode::Unauthorized
+        );
+
+        // Validate trader address
+        require!(trader.is_on_curve(), ErrorCode::InvalidNewAdmin);
+
+        // Find trader in blacklist
+        let index = pool_state
+            .trader_blacklist
+            .iter()
+            .position(|&x| x == trader)
             .ok_or(ErrorCode::TraderNotBlacklisted)?;
-        pool_state.trader_blacklist.remove(index);
 
+        // Remove trader from blacklist
+        pool_state.trader_blacklist.swap_remove(index);
+
+        // Emit event
         emit!(TraderUnblacklisted {
             pool: pool_state.key(),
             trader,
-            timestamp: Clock::get()?.unix_timestamp as i64,
+            timestamp: current_time,
         });
 
         Ok(())
@@ -919,83 +741,55 @@ pub mod hoe_dex_protection {
         rate_limit_max: Option<u32>,
     ) -> Result<()> {
         let pool_state = &mut ctx.accounts.pool_state;
-        require!(*ctx.accounts.admin.key == pool_state.admin, ErrorCode::Unauthorized);
+        let current_time = Clock::get()?.unix_timestamp;
 
-        let current_time = Clock::get()?.unix_timestamp as u64;
-        require!(current_time >= 0, ErrorCode::InvalidTimestamp);
+        // Validate admin
+        require!(
+            ctx.accounts.admin.key() == pool_state.admin,
+            ErrorCode::Unauthorized
+        );
 
-        // Calculate timelock with overflow protection
-        let scheduled_time = current_time
-            .checked_add(86_400)
-            .ok_or(ErrorCode::Overflow)?;
-
-        // Validate parameter limits
-        if let Some(fee) = early_trade_fee_bps {
-            require!(fee <= 1000, ErrorCode::FeeTooHigh);
-        }
-        if let Some(window) = early_trade_window_seconds {
-            require!(window <= pool_state.snipe_protection_seconds, ErrorCode::InvalidParameterRelationship);
-        }
-        if let Some(size) = max_trade_size_bps {
-            require!(size <= 1000, ErrorCode::TradeTooLarge);
-        }
-        if let Some(cooldown) = cooldown_seconds {
-            require!(cooldown <= 3600, ErrorCode::InvalidAmount);
-        }
-        if let Some(volume) = max_daily_volume {
-            require!(volume > 0, ErrorCode::InvalidAmount);
-        }
-        if let Some(impact) = max_price_impact_bps {
-            require!(impact <= 1000, ErrorCode::PriceImpactTooHigh);
-        }
-        if let Some(threshold) = circuit_breaker_threshold {
-            require!(threshold > 0, ErrorCode::InvalidAmount);
-        }
-        if let Some(window) = circuit_breaker_window {
-            require!(window > 0, ErrorCode::InvalidAmount);
-        }
-        if let Some(cooldown) = circuit_breaker_cooldown {
-            require!(cooldown >= 60, ErrorCode::InvalidAmount);
-        }
-        if let Some(window) = rate_limit_window {
-            require!(window > 0, ErrorCode::InvalidRateLimit);
-        }
-        if let Some(max) = rate_limit_max {
-            require!(max > 0, ErrorCode::InvalidRateLimit);
-        }
-
-        // Validate circuit breaker window vs cooldown
-        if let (Some(window), Some(cooldown)) = (circuit_breaker_window, circuit_breaker_cooldown) {
-            require!(window >= cooldown, ErrorCode::InvalidParameterRelationship);
+        // Check if fee tiers are locked
+        if fee_tiers.is_some() && pool_state.fee_tiers_locked {
+            return Err(ErrorCode::FeeTiersLocked.into());
         }
 
         // Validate fee tiers if provided
-        if let Some(tiers) = &fee_tiers {
-            require!(!tiers.is_empty(), ErrorCode::InvalidFeeTier);
-            require!(tiers.len() <= 10, ErrorCode::TooManyFeeTiers); // Cap at 10 tiers
-            for (i, tier) in tiers.iter().enumerate() {
-                require!(tier.fee_bps <= 1000, ErrorCode::FeeTooHigh);
+        if let Some(new_fee_tiers) = &fee_tiers {
+            require!(!new_fee_tiers.is_empty(), ErrorCode::InvalidFeeTier);
+            require!(new_fee_tiers.len() <= MAX_FEE_TIERS, ErrorCode::TooManyFeeTiers);
+            
+            // Validate fee tier spacing and ordering
+            let min_spacing = pool_state.max_daily_volume
+                .checked_mul(MIN_FEE_TIER_SPACING_BPS)
+                .ok_or(ErrorCode::Overflow)?
+                .checked_div(10000)
+                .ok_or(ErrorCode::Overflow)?;
+
+            for (i, tier) in new_fee_tiers.iter().enumerate() {
+                require!(tier.fee_bps <= MAX_FEE_BPS, ErrorCode::FeeTooHigh);
                 require!(tier.volume_threshold > 0, ErrorCode::InvalidFeeTier);
+                
                 if i > 0 {
+                    let prev_tier = &new_fee_tiers[i - 1];
                     require!(
-                        tier.volume_threshold > tiers[i - 1].volume_threshold,
-                        ErrorCode::InvalidFeeTier
+                        tier.volume_threshold > prev_tier.volume_threshold,
+                        ErrorCode::DuplicateFeeTierThreshold
                     );
                     require!(
-                        tier.fee_bps <= tiers[i - 1].fee_bps,
-                        ErrorCode::InvalidFeeTier
-                    );
-                    // Ensure minimum spacing between thresholds
-                    let max_volume = max_daily_volume.unwrap_or(pool_state.max_daily_volume);
-                    require!(
-                        tier.volume_threshold - tiers[i - 1].volume_threshold >= max_volume / 100,
+                        tier.volume_threshold - prev_tier.volume_threshold >= min_spacing,
                         ErrorCode::InvalidFeeTierSpacing
+                    );
+                    require!(
+                        tier.fee_bps <= prev_tier.fee_bps,
+                        ErrorCode::InvalidFeeTier
                     );
                 }
             }
         }
 
-        pool_state.pending_update = Some(PendingUpdate {
+        // Create pending update
+        let pending_update = PendingUpdate {
             early_trade_fee_bps,
             early_trade_window_seconds,
             max_trade_size_bps,
@@ -1011,13 +805,16 @@ pub mod hoe_dex_protection {
             circuit_breaker_cooldown,
             rate_limit_window,
             rate_limit_max,
-            scheduled_time: scheduled_time as i64,
-        });
+            scheduled_time: current_time + 86400, // 24 hour timelock
+        };
 
+        pool_state.pending_update = Some(pending_update);
+
+        // Emit event
         emit!(ParameterUpdateScheduled {
             pool: pool_state.key(),
-            admin: pool_state.admin,
-            scheduled_time: scheduled_time as i64,
+            admin: ctx.accounts.admin.key(),
+            scheduled_time: current_time + 86400,
         });
 
         Ok(())
@@ -1141,91 +938,61 @@ pub mod hoe_dex_protection {
     /// - Transfers fees to admin
     /// - Emits fees withdrawn event
     pub fn withdraw_fees(ctx: Context<WithdrawFees>) -> Result<()> {
-        // Validate admin authority
         let pool_state = &mut ctx.accounts.pool_state;
-        require!(*ctx.accounts.admin.key == pool_state.admin, ErrorCode::Unauthorized);
-        
-        // Validate fee amount
-        require!(pool_state.total_fees_collected > 0, ErrorCode::NoFeesToWithdraw);
-        
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // Reentrancy protection
+        let _guard = ReentrancyGuard::new(pool_state)?;
+
+        // Validate admin
+        require!(
+            ctx.accounts.admin.key() == pool_state.admin,
+            ErrorCode::Unauthorized
+        );
+
         // Validate token accounts
         require!(
-            ctx.accounts.fee_destination.owner == ctx.accounts.admin.key(),
-            ErrorCode::InvalidTokenAccount
+            ctx.accounts.fee_destination.mint == pool_state.token_mint,
+            ErrorCode::InvalidTokenMint
         );
         require!(
-            ctx.accounts.pool_token_account.owner == ctx.accounts.pool_authority.key(),
-            ErrorCode::InvalidTokenAccount
+            ctx.accounts.pool_token_account.mint == pool_state.token_mint,
+            ErrorCode::InvalidTokenMint
         );
-        require!(ctx.accounts.fee_destination.delegate.is_none(), ErrorCode::TokenAccountDelegated);
-        require!(ctx.accounts.pool_token_account.delegate.is_none(), ErrorCode::TokenAccountDelegated);
-        
-        // Validate pool authority PDA
-        let (pool_authority, _) = Pubkey::find_program_address(
-            &[b"pool_authority", pool_state.key().as_ref()],
-            program_id
-        );
-        require!(
-            pool_authority == ctx.accounts.pool_authority.key(),
-            ErrorCode::InvalidPoolAuthority
-        );
-        
-        // Get and validate current time
-        let current_time = Clock::get()?.unix_timestamp as u64;
-        require!(current_time >= 0, ErrorCode::InvalidTimestamp);
-        
-        // Store initial balances for validation
-        let initial_pool_balance = ctx.accounts.pool_token_account.amount;
-        let initial_fee_destination_balance = ctx.accounts.fee_destination.amount;
 
-        // Store fee amount and reset state (checks)
-        let fee_amount = pool_state.total_fees_collected;
+        // Get current fees
+        let fees_to_withdraw = pool_state.total_fees_collected;
+        require!(fees_to_withdraw > 0, ErrorCode::NoFeesToWithdraw);
+
+        // Reset fees before transfer to prevent reentrancy
         pool_state.total_fees_collected = 0;
-        
-        // Transfer fees (effects)
-        let cpi_accounts = token::Transfer {
-            from: ctx.accounts.pool_token_account.to_account_info(),
-            to: ctx.accounts.fee_destination.to_account_info(),
-            authority: ctx.accounts.pool_authority.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
+
+        // Transfer fees
         token::transfer(
             CpiContext::new_with_signer(
-                cpi_program,
-                cpi_accounts,
+                ctx.accounts.token_program.to_account_info(),
+                token::Transfer {
+                    from: ctx.accounts.pool_token_account.to_account_info(),
+                    to: ctx.accounts.fee_destination.to_account_info(),
+                    authority: ctx.accounts.pool_authority.to_account_info(),
+                },
                 &[&[
                     b"pool_authority",
                     pool_state.key().as_ref(),
-                    &[*ctx.bumps.get("pool_authority").unwrap()],
+                    &[*ctx.bumps.get("pool_authority").ok_or(ErrorCode::MissingBump)?],
                 ]],
             ),
-            fee_amount,
+            fees_to_withdraw,
         )?;
-        
-        // Validate transfer
-        require!(
-            ctx.accounts.pool_token_account.amount == initial_pool_balance.checked_sub(fee_amount).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
-        require!(
-            ctx.accounts.fee_destination.amount == initial_fee_destination_balance.checked_add(fee_amount).ok_or(ErrorCode::Overflow)?,
-            ErrorCode::InvalidBalance
-        );
 
-        // Validate final pool balance
-        require!(
-            ctx.accounts.pool_token_account.amount >= pool_state.min_trade_size,
-            ErrorCode::InsufficientPoolBalance
-        );
-
-        // Emit withdrawal event (interactions)
+        // Emit event
         emit!(FeesWithdrawn {
             pool: pool_state.key(),
-            admin: pool_state.admin,
-            amount: fee_amount,
-            timestamp: current_time as i64,
+            admin: ctx.accounts.admin.key(),
+            amount: fees_to_withdraw,
+            timestamp: current_time,
         });
-        
+
         Ok(())
     }
 
@@ -1339,27 +1106,65 @@ pub mod hoe_dex_protection {
     /// - Updates admin
     pub fn update_admin(ctx: Context<UpdateAdmin>) -> Result<()> {
         let pool_state = &mut ctx.accounts.pool_state;
-        
-        // Verify current admin
+        let current_time = Clock::get()?.unix_timestamp;
+
+        // Validate current admin
         require!(
-            pool_state.admin == ctx.accounts.current_admin.key(),
+            ctx.accounts.current_admin.key() == pool_state.admin,
             ErrorCode::Unauthorized
         );
 
-        // Verify new admin is not the same as current admin
+        // Validate new admin
         require!(
-            pool_state.admin != ctx.accounts.new_admin.key(),
+            ctx.accounts.new_admin.key() != pool_state.admin,
+            ErrorCode::InvalidNewAdmin
+        );
+        require!(
+            ctx.accounts.new_admin.key() != pool_state.emergency_admin,
             ErrorCode::InvalidNewAdmin
         );
 
+        // Check admin update cooldown (24 hours)
+        require!(
+            current_time - pool_state.last_admin_update as i64 >= 86400,
+            ErrorCode::AdminUpdateTooFrequent
+        );
+
         // Update admin
+        let old_admin = pool_state.admin;
         pool_state.admin = ctx.accounts.new_admin.key();
+        pool_state.last_admin_update = current_time as u64;
 
         // Emit event
         emit!(AdminUpdated {
             pool: pool_state.key(),
-            old_admin: ctx.accounts.current_admin.key(),
-            new_admin: ctx.accounts.new_admin.key(),
+            old_admin,
+            new_admin: pool_state.admin,
+            timestamp: current_time,
+        });
+
+        Ok(())
+    }
+
+    pub fn lock_fee_tiers(ctx: Context<LockFeeTiers>) -> Result<()> {
+        let pool_state = &mut ctx.accounts.pool_state;
+
+        // Validate admin
+        require!(
+            ctx.accounts.admin.key() == pool_state.admin,
+            ErrorCode::Unauthorized
+        );
+
+        // Check if already locked
+        require!(!pool_state.fee_tiers_locked, ErrorCode::FeeTiersLocked);
+
+        // Lock fee tiers
+        pool_state.fee_tiers_locked = true;
+
+        // Emit event
+        emit!(FeeTiersLocked {
+            pool: pool_state.key(),
+            admin: ctx.accounts.admin.key(),
             timestamp: Clock::get()?.unix_timestamp,
         });
 
@@ -1395,7 +1200,7 @@ pub struct InitializePoolProtection<'info> {
             8 + // volume_24h
             8 + // last_volume_update
             32 + // emergency_admin
-            100 + // fee_tiers vector (approximate)
+            (4 + MAX_FEE_TIERS * 16) + // fee_tiers: Vec<FeeTier> = len (u32) + MAX_FEE_TIERS * (volume_threshold: u64 + fee_bps: u64)
             8 + // max_daily_volume
             8 + // max_price_impact_bps
             8 + // circuit_breaker_threshold
@@ -1405,7 +1210,10 @@ pub struct InitializePoolProtection<'info> {
             8 + // rate_limit_window
             4 + // rate_limit_count
             4 + // rate_limit_max
-            100 + // trader_blacklist (approximate)
+            8 + // last_rate_limit_reset
+            (4 + MAX_BLACKLIST_SIZE * 32) + // trader_blacklist: Vec<Pubkey> = len (u32) + MAX_BLACKLIST_SIZE * Pubkey (32 bytes each)
+            8 + // last_admin_update
+            1 + // fee_tiers_locked
             32, // padding for future fields
         seeds = [b"pool_state", admin.key().as_ref()],
         bump
@@ -1611,12 +1419,20 @@ pub struct UpdateAdmin<'info> {
     pub pool_state: Account<'info, PoolState>,
     /// CHECK: Validated in the instruction
     pub current_admin: Signer<'info>,
-    /// CHECK: Validated in the instruction
-    pub new_admin: AccountInfo<'info>,
+    pub new_admin: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct LockFeeTiers<'info> {
+    #[account(mut)]
+    pub pool_state: Account<'info, PoolState>,
+    #[account(mut)]
+    pub admin: Signer<'info>,
+}
+
 #[account]
+#[derive(Debug)]
 pub struct PoolState {
     pub admin: Pubkey,
     pub token_mint: Pubkey,
@@ -1650,7 +1466,52 @@ pub struct PoolState {
     pub rate_limit_window: u64,
     pub rate_limit_count: u32,
     pub rate_limit_max: u32,
+    pub last_rate_limit_reset: u64,
     pub trader_blacklist: Vec<Pubkey>,
+    pub last_admin_update: u64,
+    pub fee_tiers_locked: bool,
+}
+
+impl PoolState {
+    pub const LEN: usize = 
+        8 + // discriminator
+        32 + // admin pubkey
+        32 + // token mint pubkey
+        1 + // token decimals
+        8 + // snipe_protection_seconds
+        8 + // early_trade_fee_bps
+        8 + // early_trade_window_seconds
+        8 + // pool_start_time
+        8 + // total_fees_collected
+        8 + // total_liquidity
+        1 + // is_paused
+        1 + // is_emergency_paused
+        8 + // max_trade_size_bps
+        8 + // min_trade_size
+        8 + // cooldown_seconds
+        8 + // last_trade_time
+        1 + // version
+        8 + // last_update
+        1 + // is_locked
+        48 + // pending_update option
+        8 + // volume_24h
+        8 + // last_volume_update
+        32 + // emergency_admin
+        (4 + MAX_FEE_TIERS * 16) + // fee_tiers: Vec<FeeTier>
+        8 + // max_daily_volume
+        8 + // max_price_impact_bps
+        8 + // circuit_breaker_threshold
+        8 + // circuit_breaker_window
+        8 + // circuit_breaker_cooldown
+        8 + // last_circuit_breaker
+        8 + // rate_limit_window
+        4 + // rate_limit_count
+        4 + // rate_limit_max
+        8 + // last_rate_limit_reset
+        (4 + MAX_BLACKLIST_SIZE * 32) + // trader_blacklist
+        8 + // last_admin_update
+        1 + // fee_tiers_locked
+        32; // padding for future fields
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -1714,6 +1575,7 @@ pub struct TradeExecuted {
     pub amount_in: u64,
     pub amount_out: u64,
     pub fee_amount: u64,
+    pub fee_mode: u8,
     pub timestamp: i64,
     pub token_mint: Pubkey,
 }
@@ -1792,6 +1654,13 @@ pub struct AdminUpdated {
     pub pool: Pubkey,
     pub old_admin: Pubkey,
     pub new_admin: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct FeeTiersLocked {
+    pub pool: Pubkey,
+    pub admin: Pubkey,
     pub timestamp: i64,
 }
 
@@ -1893,8 +1762,29 @@ pub enum ErrorCode {
     TokenAccountDelegated,
     #[msg("Invalid new admin")]
     InvalidNewAdmin,
+    #[msg("Fee too low")]
+    FeeTooLow,
+    #[msg("Invalid emergency admin address")]
+    InvalidEmergencyAdminAddress,
+    #[msg("Flash loan detected")]
+    FlashLoanDetected,
+    #[msg("Invalid decimal calculation")]
+    InvalidDecimalCalculation,
+    #[msg("Missing PDA bump")]
+    MissingBump,
+    #[msg("Duplicate fee tier threshold")]
+    DuplicateFeeTierThreshold,
+    #[msg("Token mint has freeze authority")]
+    TokenMintHasFreezeAuthority,
+    #[msg("Rate limit state corrupted")]
+    RateLimitStateCorrupted,
+    #[msg("Admin update too frequent")]
+    AdminUpdateTooFrequent,
+    #[msg("Fee tiers are locked")]
+    FeeTiersLocked,
 }
 
+/// Reentrancy guard for preventing recursive calls
 struct ReentrancyGuard<'a> {
     pool_state: &'a mut Account<'a, PoolState>,
 }
@@ -1905,11 +1795,15 @@ impl<'a> ReentrancyGuard<'a> {
         pool_state.is_locked = true;
         Ok(Self { pool_state })
     }
+
+    fn release(&mut self) {
+        self.pool_state.is_locked = false;
+    }
 }
 
 impl<'a> Drop for ReentrancyGuard<'a> {
     fn drop(&mut self) {
-        self.pool_state.is_locked = false;
+        self.release();
     }
 }
 
@@ -1919,42 +1813,76 @@ fn validate_balance_change(
     expected_change: i64,
     min_balance: u64,
 ) -> Result<()> {
-    if expected_change > 0 {
-        require!(
-            current_balance >= min_balance,
-            ErrorCode::InsufficientBalance
-        );
+    let new_balance = if expected_change >= 0 {
+        current_balance.checked_add(expected_change as u64)
     } else {
-        let expected_balance = current_balance.checked_sub(expected_change.unsigned_abs()).ok_or(ErrorCode::Overflow)?;
-        require!(
-            expected_balance >= min_balance,
-            ErrorCode::InsufficientBalance
-        );
-    }
+        current_balance.checked_sub(expected_change.unsigned_abs())
+    }.ok_or(ErrorCode::Overflow)?;
+
+    require!(
+        new_balance >= min_balance,
+        ErrorCode::InsufficientBalance
+    );
     Ok(())
 }
 
 // Helper function to calculate price impact
-fn calculate_price_impact(
-    amount_in: u64,
-    pool_balance: u64,
-    token_decimals: u8,
-) -> Result<u64> {
+fn calculate_price_impact(amount_in: u64, pool_balance: u64, token_decimals: u8) -> Result<u64> {
+    // Convert to same decimal precision
+    let amount_in_scaled = calculate_amount_with_decimals(amount_in, token_decimals)?;
+    let pool_balance_scaled = calculate_amount_with_decimals(pool_balance, token_decimals)?;
+    
+    // Calculate impact in basis points
+    let impact = amount_in_scaled
+        .checked_mul(10000)
+        .ok_or(ErrorCode::Overflow.into())?
+        .checked_div(pool_balance_scaled)
+        .ok_or(ErrorCode::Overflow.into())?;
+    
     // Handle edge cases
-    if amount_in == 0 || pool_balance == 0 {
-        return Ok(0);
+    if impact == 0 && amount_in > 0 {
+        return Ok(1);
+    }
+    Ok(impact)
+}
+
+/// Utility functions for safe calculations and validations
+fn calculate_amount_with_decimals(amount: u64, decimals: u8) -> Result<u64> {
+    amount
+        .checked_mul(10u64.pow(decimals as u32))
+        .ok_or(ErrorCode::InvalidDecimalCalculation.into())
+}
+
+fn calculate_amount_without_decimals(amount: u64, decimals: u8) -> Result<u64> {
+    amount
+        .checked_div(10u64.pow(decimals as u32))
+        .ok_or(ErrorCode::InvalidDecimalCalculation.into())
+}
+
+// Helper function to calculate fee
+fn calculate_fee(pool_state: &PoolState, amount_in: u64, current_time: i64) -> Result<(u64, u8)> {
+    // Early trade fee
+    if current_time - pool_state.pool_start_time as i64 <= pool_state.early_trade_window_seconds as i64 {
+        let fee = amount_in
+            .checked_mul(pool_state.early_trade_fee_bps)
+            .ok_or(ErrorCode::Overflow)?
+            .checked_div(10000)
+            .ok_or(ErrorCode::Overflow)?;
+        return Ok((fee, FEE_MODE_EARLY_TRADE));
     }
 
-    // Scale to same precision
-    let scaled_amount = amount_in.checked_mul(10u64.pow(token_decimals as u32))
-        .ok_or(ErrorCode::CalculationOverflow)?;
-    
-    // Calculate price impact in basis points
-    let price_impact = scaled_amount
-        .checked_mul(10000)
-        .ok_or(ErrorCode::CalculationOverflow)?
-        .checked_div(pool_balance)
-        .ok_or(ErrorCode::CalculationOverflow)?;
+    // Fee tier based on volume
+    for tier in &pool_state.fee_tiers {
+        if pool_state.volume_24h <= tier.volume_threshold {
+            let fee = amount_in
+                .checked_mul(tier.fee_bps)
+                .ok_or(ErrorCode::Overflow)?
+                .checked_div(10000)
+                .ok_or(ErrorCode::Overflow)?;
+            return Ok((fee, FEE_MODE_TIER_BASED));
+        }
+    }
 
-    Ok(price_impact)
+    // No fee
+    Ok((0, FEE_MODE_NONE))
 }
