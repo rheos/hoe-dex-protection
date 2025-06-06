@@ -11,7 +11,7 @@ pub use events::*;
 pub use types::*;
 
 // Program ID (replace with actual ID after deployment)
-declare_id!("HoeDexProtect111111111111111111111111111111111111");
+declare_id!("HoeDexProtect1111111111111111111111111111111111111111111111111111111111111111");
 
 #[program]
 pub mod hoe_dex_protection {
@@ -372,7 +372,7 @@ pub mod hoe_dex_protection {
 
         // Find applicable fee tier based on volume
         for tier in &pool_state.fee_tiers {
-            if pool_state.volume.volume_24h <= tier.volume_threshold {
+            if pool_state.volume.current_volume <= tier.volume_threshold {
                 let fee = amount_in
                     .checked_mul(tier.fee_bps)
                     .ok_or(ErrorCode::Overflow)?
@@ -384,7 +384,7 @@ pub mod hoe_dex_protection {
                     pool_state.default_fee_bps
                         .map(|bps| amount_in.checked_mul(bps).ok_or(ErrorCode::Overflow)?.checked_div(10000).ok_or(ErrorCode::Overflow)?)
                         .unwrap_or(MINIMUM_FEE)
-        } else {
+                } else {
                     fee.max(MINIMUM_FEE)
                 };
                 
@@ -1474,13 +1474,13 @@ impl PoolState {
         let hours_passed = current_time
             .checked_sub(self.volume.last_reset)
             .ok_or_else(|| {
-                error!(ErrorCode::InvalidTimestamp, "Failed to calculate hours passed: {} - {}", 
-                    current_time, self.volume.last_reset)
+                msg!("Failed to calculate hours passed: {} - {}", current_time, self.volume.last_reset);
+                return Err(ErrorCode::InvalidTimestamp.into());
             })?
             .checked_div(3600)
             .ok_or_else(|| {
-                error!(ErrorCode::Overflow, "Hours calculation overflow: {} / 3600", 
-                    current_time - self.volume.last_reset)
+                msg!("Hours calculation overflow: {} / 3600", current_time - self.volume.last_reset);
+                return Err(ErrorCode::Overflow.into());
             })?;
 
         if hours_passed > 0 {
@@ -1489,8 +1489,8 @@ impl PoolState {
                 .saturating_mul(decay_factor)
                 .checked_div(100)
                 .ok_or_else(|| {
-                    error!(ErrorCode::Overflow, "Volume decay calculation overflow: {} * {} / 100", 
-                        self.volume.current_volume, decay_factor)
+                    msg!("Volume decay calculation overflow: {} * {} / 100", self.volume.current_volume, decay_factor);
+                    return Err(ErrorCode::Overflow.into());
                 })?;
 
             self.volume.current_volume = new_volume;
@@ -1634,8 +1634,8 @@ impl PoolState {
         let pool_age = current_time
             .checked_sub(self.pool_start_time as i64)
             .ok_or_else(|| {
-                error!(ErrorCode::InvalidTimestamp, "Failed to calculate pool age: {} - {}", 
-                    current_time, self.pool_start_time)
+                msg!("Failed to calculate pool age: {} - {}", current_time, self.pool_start_time);
+                return Err(ErrorCode::InvalidTimestamp.into());
             })?;
 
         if pool_age < self.trade_settings.early_trade_window_seconds as i64 {
@@ -1643,13 +1643,13 @@ impl PoolState {
             let fee = self.trade_settings.early_trade_fee_bps
                 .checked_mul(amount_in)
                 .ok_or_else(|| {
-                    error!(ErrorCode::Overflow, "Fee calculation overflow: {} * {}", 
-                        self.trade_settings.early_trade_fee_bps, amount_in)
+                    msg!("Fee calculation overflow: {} * {}", self.trade_settings.early_trade_fee_bps, amount_in);
+                    return Err(ErrorCode::Overflow.into());
                 })?
                 .checked_div(10000)
                 .ok_or_else(|| {
-                    error!(ErrorCode::Overflow, "Fee calculation division overflow: {} / 10000", 
-                        self.trade_settings.early_trade_fee_bps * amount_in)
+                    msg!("Fee calculation division overflow: {} / 10000", self.trade_settings.early_trade_fee_bps * amount_in);
+                    return Err(ErrorCode::Overflow.into());
                 })?;
 
             // Ensure minimum fee
@@ -1961,7 +1961,7 @@ impl ValidationHelpers for PoolState {
 
 impl anchor_lang::Key for PoolState {
     fn key(&self) -> Pubkey {
-        self.key()
+        self.to_account_info().key()
     }
 }
 
@@ -1996,4 +1996,9 @@ macro_rules! error {
             Err($error.into())
         }
     };
+}
+
+fn current_unix_ts() -> Result<i64> {
+    let clock = Clock::get()?;
+    Ok(clock.unix_timestamp)
 }

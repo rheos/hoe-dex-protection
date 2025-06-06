@@ -5,7 +5,7 @@
         "build": "cargo build-sbf"
     },
     "dependencies": {
-        "@coral-xyz/anchor": "^0.31.1"
+        "@coral-xyz/anchor": "0.31.0"
     },
     "devDependencies": {
         "chai": "^4.3.4",

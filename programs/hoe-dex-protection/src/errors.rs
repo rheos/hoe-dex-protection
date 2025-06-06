@@ -70,4 +70,18 @@ pub enum ErrorCode {
     DailyVolumeLimitExceeded,
     #[msg("Price impact too high")]
     PriceImpactTooHigh,
+    #[msg("Pool is not paused")]
+    PoolNotPaused,
+    #[msg("Invalid token decimals")]
+    InvalidTokenDecimals,
+    #[msg("Token mint has freeze authority")]
+    TokenMintHasFreezeAuthority,
+    #[msg("Token account is delegated")]
+    TokenAccountDelegated,
+    #[msg("Fee too low")]
+    FeeTooLow,
+    #[msg("Duplicate fee tier threshold")]
+    DuplicateFeeTierThreshold,
+    #[msg("Circuit breaker cooldown")]
+    CircuitBreakerCooldown,
 } 

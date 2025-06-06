@@ -2,6 +2,7 @@
 pub const MINIMUM_FEE_BPS: u64 = 1; // 0.01%
 pub const MINIMUM_FEE: u64 = 1; // Minimum fee in lamports
 pub const MAX_EARLY_TRADE_FEE_BPS: u64 = 1000; // 10% maximum fee for early trades
+pub const MAXIMUM_FEE_BPS: u64 = 1000; // 10%
 
 // Cooldowns and timelocks
 pub const EMERGENCY_TIMELOCK_SECONDS: u64 = 3600; // 1 hour emergency action delay
@@ -16,6 +17,7 @@ pub const PENDING_UPDATE_SEED: &[u8] = b"pending_update";
 // Fee mode constants for tracking fee application
 pub const FEE_MODE_NONE: u8 = 0;
 pub const FEE_MODE_EARLY_TRADE: u8 = 1;
+pub const FEE_MODE_TIER_BASED: u8 = 1;
 pub const FEE_MODE_VOLUME_BASED: u8 = 2;
 pub const FEE_MODE_CIRCUIT_BREAKER: u8 = 3;
 

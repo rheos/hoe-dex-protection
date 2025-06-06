@@ -70,12 +70,14 @@ pub struct CircuitBreakerSettings {
     pub last_trigger: u64,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct VolumeSettings {
     pub volume_24h: u64,
-    pub last_update: u64,
-    pub last_decay: u64,
+    pub last_update: i64,
+    pub last_decay: i64,
     pub max_daily: u64,
+    pub current_volume: u64,
+    pub last_reset: i64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
