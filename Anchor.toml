@@ -1,7 +1,3 @@
-[toolchain]
-package_manager = "yarn"
-anchor_version = "0.29.0"
-
 [features]
 resolution = true
 skip-lint = false

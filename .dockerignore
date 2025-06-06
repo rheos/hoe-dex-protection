@@ -4,8 +4,6 @@ node_modules/
 .gitignore
 .prettierignore
 tsconfig.json
-yarn.lock
-package.json
 app/
 tests/
 migrations/
