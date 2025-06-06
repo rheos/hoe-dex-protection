@@ -1672,7 +1672,7 @@ impl PoolState {
             }
         }
 
-        // Use default fee if no tier applies
+        // Use default fee if configured, otherwise minimum fee
         let default_fee_bps = self.default_fee_bps.unwrap_or(MINIMUM_FEE_BPS);
         let fee = default_fee_bps
             .checked_mul(amount_in)

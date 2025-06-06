@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TradeSettings {
     pub max_size_bps: u64,
     pub min_size: u64,
@@ -9,11 +10,13 @@ pub struct TradeSettings {
     pub early_trade_window_seconds: u64,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct ProtectionSettings {
     pub snipe_protection_seconds: u64,
     pub max_price_impact_bps: u64,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct TradeSettingsUpdate {
     pub early_trade_fee_bps: u64,
     pub early_trade_window_seconds: u64,
@@ -22,6 +25,7 @@ pub struct TradeSettingsUpdate {
     pub cooldown_seconds: u64,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct ProtectionSettingsUpdate {
     pub max_daily_volume: u64,
     pub max_price_impact_bps: u64,
@@ -32,21 +36,23 @@ pub struct ProtectionSettingsUpdate {
     pub rate_limit_max: u32,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct FeeSettingsUpdate {
     pub fee_tiers: Vec<FeeTier>,
     pub fee_tiers_locked: bool,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct StateSettingsUpdate {
     pub is_paused: bool,
     pub is_emergency_paused: bool,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct FeeTier {
     pub volume_threshold: u64,
     pub fee_bps: u64,
-} 
-
+}
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct RateLimitSettings {
@@ -71,8 +77,6 @@ pub struct VolumeSettings {
     pub last_decay: u64,
     pub max_daily: u64,
 }
-
-
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct PendingUpdate {
