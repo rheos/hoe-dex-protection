@@ -2,34 +2,12 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use std::collections::HashSet;
 
+// Module declarations
+pub mod constants;
+pub use constants::*;
+
 // Program ID (replace with actual ID after deployment)
-declare_id!("11111111111111111111111111111111");
-
-// Fee mode constants for tracking fee application
-const FEE_MODE_NONE: u8 = 0; // No fee applied
-const FEE_MODE_EARLY_TRADE: u8 = 1; // Early trade fee applied
-const FEE_MODE_TIER_BASED: u8 = 2; // Volume-based tier fee applied
-
-// --- Constants ---
-pub const SECONDS_PER_HOUR: u64 = 3600;
-pub const SECONDS_PER_DAY: u64 = 86400;
-pub const SECONDS_PER_WEEK: u64 = 604800;
-pub const MINIMUM_FEE_BPS: u64 = 1; // 0.01%
-pub const MAXIMUM_FEE_BPS: u64 = 1000; // 10%
-pub const MINIMUM_FEE: u64 = 1; // Minimum fee in lamports
-pub const POOL_ID_SEED: &[u8] = b"pool_id";
-
-// --- Cooldowns ---
-pub const EMERGENCY_TIMELOCK_SECONDS: u64 = 3600; // 1 hour
-pub const PARAMETER_UPDATE_TIMELOCK: u64 = 86400; // 24 hours
-pub const ADMIN_UPDATE_COOLDOWN: u64 = 86400; // 24 hours
-
-// --- Limits ---
-pub const MAX_FEE_TIERS: usize = 100;
-pub const MAX_BLACKLIST_SIZE: usize = 1000;
-pub const MAX_PENDING_UPDATE_SIZE: usize = 100;
-pub const BATCH_BLACKLIST_MAX_SIZE: usize = 50;
-pub const MIN_FEE_TIER_SPACING_BPS: u64 = 10; // 0.1%
+declare_id!("hoedexprotect111111111111111111111111111111111111");
 
 #[program]
 pub mod hoe_dex_protection {
@@ -2411,12 +2389,6 @@ pub enum ErrorCode {
     InvalidTradeSettings,
 }
 
-// --- Limits ---
-pub const MAX_FEE_TIERS: usize = 100;
-pub const MAX_BLACKLIST_SIZE: usize = 1000;
-pub const MAX_PENDING_UPDATE_SIZE: usize = 100;
-pub const BATCH_BLACKLIST_MAX_SIZE: usize = 50;
-pub const MIN_FEE_TIER_SPACING_BPS: u64 = 10; // 0.1%
 
 // --- Fee Mode Enum ---
 #[repr(u8)]
