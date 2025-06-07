@@ -1,13 +1,25 @@
+# Use backpackapp/build:v0.31.0 as the base image
 FROM backpackapp/build:v0.31.0
 
-# Set working directory to the project root
+# Set working directory
 WORKDIR /app
 
-# Copy the project files
+# Update Node.js to version 20.18.0
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs=20.18.0-1nodesource1 && \
+    npm install -g yarn
+
+# Copy project files
 COPY . .
 
-# Remove Cargo.lock to force regeneration by the container's Cargo version
-RUN rm -f Cargo.lock
+# Install Yarn dependencies
+RUN yarn install
 
-# Build the program using anchor build
-CMD ["anchor", "build"] 
+# Build the Anchor project
+RUN anchor build
+
+# Expose ports (optional, for localnet)
+EXPOSE 8899
+
+# Command to keep container running or run tests
+CMD ["bash"]
