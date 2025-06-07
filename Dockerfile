@@ -9,9 +9,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs=20.18.0-1nodesource1 && \
     npm install -g yarn
 
-# Copy Solana development wallet
-COPY ~/.config/solana/dev-wallet.json /root/.config/solana/dev-wallet.json
-
 # Copy project files
 COPY . .
 
