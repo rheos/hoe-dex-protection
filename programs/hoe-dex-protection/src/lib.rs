@@ -11,7 +11,7 @@ pub use events::*;
 pub use types::*;
 
 // Program ID (replace with actual ID after deployment)
-declare_id!("HoeDexProtect1111111111111111111111111111111111111111111111111111111111111111");
+declare_id!("11111111111111111111111111111111"); // Temporary placeholder
 
 #[program]
 pub mod hoe_dex_protection {
@@ -40,10 +40,10 @@ pub mod hoe_dex_protection {
         snipe_protection_seconds: u64,
     ) -> Result<()> {
         let pool_state = &mut ctx.accounts.pool_state;
-        let current_time = Clock::get()?.unix_timestamp;
+        let current_time = Clock::get()?.unix_timestamp as u64;
 
         // Validate fee tiers
-        utils::validate_fee_tiers(&fee_tiers)?;
+        pool_state.validate_fee_tiers(&fee_tiers)?;
 
         // Initialize pool state
         pool_state.version = 1;
@@ -58,9 +58,9 @@ pub mod hoe_dex_protection {
         pool_state.is_paused = false;
         pool_state.is_emergency_paused = false;
         pool_state.is_finalized = false;
-        pool_state.pool_start_time = current_time as u64;
-        pool_state.last_update = current_time as u64;
-        pool_state.last_admin_update = current_time as u64;
+        pool_state.pool_start_time = current_time;
+        pool_state.last_update = current_time;
+        pool_state.last_admin_update = current_time;
         pool_state.emergency_action_scheduled_time = 0;
         pool_state.pending_update = None;
         pool_state.trade_settings = TradeSettings {
@@ -74,8 +74,8 @@ pub mod hoe_dex_protection {
         pool_state.rate_limit = RateLimitSettings {
             window_seconds: rate_limit_window,
             count: 0,
-            max_calls: rate_limit_max as u64,
-            last_reset: current_time as u64,
+            max_calls: rate_limit_max,
+            last_reset: current_time,
         };
         pool_state.circuit_breaker = CircuitBreakerSettings {
             enabled: true,
@@ -85,16 +85,18 @@ pub mod hoe_dex_protection {
             last_trigger: 0,
         };
         pool_state.volume = VolumeSettings {
-            daily_limit: max_daily_volume,
+            volume_24h: 0,
+            last_update: current_time,
+            last_decay: current_time,
+            max_daily: max_daily_volume,
             current_volume: 0,
-            last_reset: current_time as u64,
-            decay_rate: 0,
+            last_reset: current_time,
         };
         pool_state.protection = ProtectionSettings {
             enabled: true,
-            min_liquidity: 0,
-            max_price_impact: max_price_impact_bps,
-            max_slippage: 0,
+            snipe_protection_seconds,
+            max_price_impact_bps,
+            max_slippage: 100, // 1% default slippage
             blacklist_enabled: false,
         };
         pool_state.fee_tiers = fee_tiers;
@@ -105,7 +107,7 @@ pub mod hoe_dex_protection {
         emit!(PoolInitialized {
             pool: pool_state.key(),
             admin_pubkey: pool_state.admin,
-            ts: current_time,
+            ts: current_time as i64,
         });
 
         Ok(())
@@ -127,7 +129,7 @@ pub mod hoe_dex_protection {
         // Validate amount
         if amount == 0 {
             msg!("Invalid amount: must be greater than zero");
-            return Err(ErrorCode::InvalidAmount.into());
+            return Err(crate::ErrorCode::InvalidAmount.into());
         }
 
         // Check token accounts
@@ -165,7 +167,7 @@ pub mod hoe_dex_protection {
             .checked_add(amount)
             .ok_or_else(|| {
                 msg!("Liquidity overflow: {} + {}", ctx.accounts.pool_state.total_liquidity, amount);
-                error!(ErrorCode::Overflow)
+                error!(crate::ErrorCode::Overflow)
             })?;
 
         ctx.accounts.pool_state.last_update = current_time;
@@ -197,7 +199,7 @@ pub mod hoe_dex_protection {
         // Validate amount
         if amount == 0 {
             msg!("Invalid amount: must be greater than zero");
-            return Err(ErrorCode::InvalidAmount.into());
+            return Err(crate::ErrorCode::InvalidAmount.into());
         }
 
         // Check if enough liquidity
@@ -206,7 +208,7 @@ pub mod hoe_dex_protection {
                 amount, 
                 ctx.accounts.pool_state.total_liquidity
             );
-            return Err(ErrorCode::InsufficientLiquidity.into());
+            return Err(crate::ErrorCode::InsufficientLiquidity.into());
         }
 
         // Update pool state
@@ -214,7 +216,7 @@ pub mod hoe_dex_protection {
             .checked_sub(amount)
             .ok_or_else(|| {
                 msg!("Liquidity underflow: {} - {}", ctx.accounts.pool_state.total_liquidity, amount);
-                error!(ErrorCode::Overflow)
+                error!(crate::ErrorCode::Overflow)
             })?;
 
         ctx.accounts.pool_state.last_update = current_time;
@@ -254,36 +256,36 @@ pub mod hoe_dex_protection {
         let (fee_amount, fee_mode) = ctx.accounts.pool_state.calculate_fee(amount_in, current_time as i64)?;
         let amount_after_fee = amount_in.checked_sub(fee_amount).ok_or_else(|| {
             msg!("Fee calculation overflow: {} - {}", amount_in, fee_amount);
-            error!(ErrorCode::Overflow)
+            error!(crate::ErrorCode::Overflow)
         })?;
 
         // Calculate price impact
         let price_impact = ctx.accounts.pool_state.calculate_price_impact(amount_after_fee, ctx.accounts.pool_state.total_liquidity)?;
         if price_impact > ctx.accounts.pool_state.protection.max_price_impact {
             msg!("Price impact too high: {} > {}", price_impact, ctx.accounts.pool_state.protection.max_price_impact);
-            return Err(ErrorCode::PriceImpactTooHigh.into());
+            return Err(crate::ErrorCode::PriceImpactTooHigh.into());
         }
 
         // Calculate amount out
         let amount_out = amount_after_fee.checked_mul(ctx.accounts.pool_state.total_liquidity)
             .ok_or_else(|| {
                 msg!("Amount calculation overflow: {} * {}", amount_after_fee, ctx.accounts.pool_state.total_liquidity);
-                error!(ErrorCode::Overflow)
+                error!(crate::ErrorCode::Overflow)
             })?
             .checked_div(ctx.accounts.pool_state.total_liquidity.checked_add(amount_after_fee)
                 .ok_or_else(|| {
                     msg!("Pool balance overflow: {} + {}", ctx.accounts.pool_state.total_liquidity, amount_after_fee);
-                    error!(ErrorCode::Overflow)
+                    error!(crate::ErrorCode::Overflow)
                 })?)
             .ok_or_else(|| {
                 msg!("Division by zero in amount calculation");
-                error!(ErrorCode::Overflow)
+                error!(crate::ErrorCode::Overflow)
             })?;
 
         // Check slippage
         if amount_out < minimum_amount_out {
             msg!("Slippage exceeded: got {} < minimum {}", amount_out, minimum_amount_out);
-            return Err(ErrorCode::SlippageExceeded.into());
+            return Err(crate::ErrorCode::SlippageExceeded.into());
         }
 
         // Transfer tokens
@@ -311,14 +313,14 @@ pub mod hoe_dex_protection {
             .checked_add(amount_in)
             .ok_or_else(|| {
                 msg!("Liquidity overflow: {} + {}", ctx.accounts.pool_state.total_liquidity, amount_in);
-                error!(ErrorCode::Overflow)
+                error!(crate::ErrorCode::Overflow)
             })?;
 
         ctx.accounts.pool_state.total_fees_collected = ctx.accounts.pool_state.total_fees_collected
             .checked_add(fee_amount)
             .ok_or_else(|| {
                 msg!("Fee collection overflow: {} + {}", ctx.accounts.pool_state.total_fees_collected, fee_amount);
-                error!(ErrorCode::Overflow)
+                error!(crate::ErrorCode::Overflow)
             })?;
 
         ctx.accounts.pool_state.trade_settings.last_trade_time = current_time;
@@ -343,62 +345,10 @@ pub mod hoe_dex_protection {
         })
     }
 
-    /// Calculate fee based on trade timing and volume
-    ///
-    /// This function determines the appropriate fee to charge based on:
-    /// 1. Whether the trade is within the early trade window
-    /// 2. The current 24h volume and applicable fee tier
-    /// 3. Returns both the fee amount and the fee mode for tracking
-    fn calculate_fee(pool_state: &PoolState, amount_in: u64, current_time: i64) -> Result<(u64, u8)> {
-        // Early trade fee if within protection window
-        if current_time - pool_state.pool_start_time as i64 <= pool_state.trade_settings.early_trade_window_seconds as i64 {
-            let fee = amount_in
-                .checked_mul(pool_state.trade_settings.early_trade_fee_bps)
-                .ok_or(ErrorCode::Overflow)?
-                .checked_div(10000)
-                .ok_or(ErrorCode::Overflow)?;
-            
-            // Use default fee if configured, otherwise minimum fee
-            let effective_fee = if fee == 0 {
-                pool_state.default_fee_bps
-                    .map(|bps| amount_in.checked_mul(bps).ok_or(ErrorCode::Overflow)?.checked_div(10000).ok_or(ErrorCode::Overflow)?)
-                    .unwrap_or(MINIMUM_FEE)
-            } else {
-                fee.max(MINIMUM_FEE)
-            };
-            
-            return Ok((effective_fee, FEE_MODE_EARLY_TRADE));
-        }
-
-        // Find applicable fee tier based on volume
-        for tier in &pool_state.fee_tiers {
-            if pool_state.volume.current_volume <= tier.volume_threshold {
-                let fee = amount_in
-                    .checked_mul(tier.fee_bps)
-                    .ok_or(ErrorCode::Overflow)?
-                    .checked_div(10000)
-                    .ok_or(ErrorCode::Overflow)?;
-                
-                // Use default fee if configured, otherwise minimum fee
-                let effective_fee = if fee == 0 {
-                    pool_state.default_fee_bps
-                        .map(|bps| amount_in.checked_mul(bps).ok_or(ErrorCode::Overflow)?.checked_div(10000).ok_or(ErrorCode::Overflow)?)
-                        .unwrap_or(MINIMUM_FEE)
-                } else {
-                    fee.max(MINIMUM_FEE)
-                };
-                
-                return Ok((effective_fee, FEE_MODE_TIER_BASED));
-            }
-        }
-
-        // Use default fee if configured, otherwise minimum fee
-        let fallback_fee = pool_state.default_fee_bps
-            .map(|bps| amount_in.checked_mul(bps).ok_or(ErrorCode::Overflow)?.checked_div(10000).ok_or(ErrorCode::Overflow)?)
-            .unwrap_or(MINIMUM_FEE);
-
-        Ok((fallback_fee, FEE_MODE_NONE))
-    }
+    /// Calculate fee for a trade
+    /// 
+    /// This function is now implemented as a method in the PoolState struct.
+    /// See PoolState::calculate_fee for implementation details.
 
     /// Blacklist a trader to prevent them from trading
     ///
@@ -497,7 +447,7 @@ pub mod hoe_dex_protection {
         state.check_token_account(&ctx.accounts.pool_token_account, &state.token_mint)?;
 
         // Validate fees available
-        validate_condition!(state.total_fees_collected > 0, ErrorCode::NoFeesAvailable);
+        validate_condition!(state.total_fees_collected > 0, crate::ErrorCode::NoFeesAvailable);
 
         // Transfer fees from pool to admin
         let cpi_ctx = with_pool_signer(
@@ -539,7 +489,7 @@ pub mod hoe_dex_protection {
         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
 
         // Validate fee tiers not already locked
-        validate_condition!(!state.fee_tiers_locked, ErrorCode::FeeTiersLocked);
+        validate_condition!(!state.fee_tiers_locked, crate::ErrorCode::FeeTiersLocked);
 
         // Update pool state
         state.fee_tiers_locked = true;
@@ -569,7 +519,7 @@ pub mod hoe_dex_protection {
         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
 
         // Validate fee tiers are locked
-        validate_condition!(state.fee_tiers_locked, ErrorCode::FeeTiersNotLocked);
+        validate_condition!(state.fee_tiers_locked, crate::ErrorCode::FeeTiersNotLocked);
 
         // Update pool state
         state.fee_tiers_locked = false;
@@ -609,7 +559,7 @@ pub mod hoe_dex_protection {
                 settings.max_trade_size_bps,
                 settings.min_trade_size,
                 u64::MAX,
-                ErrorCode::InvalidParameterRelationship
+                crate::ErrorCode::InvalidParameterRelationship
             );
         }
 
@@ -618,7 +568,7 @@ pub mod hoe_dex_protection {
                 settings.max_price_impact_bps,
                 0,
                 10000,
-                ErrorCode::PriceImpactTooHigh
+                crate::ErrorCode::PriceImpactTooHigh
             );
         }
 
@@ -660,7 +610,7 @@ pub mod hoe_dex_protection {
 
         // Take the pending update
         let pending_update = state.pending_update.take().ok_or_else(|| {
-            error!(ErrorCode::NoPendingUpdate, "No pending update available")
+            error!(crate::ErrorCode::NoPendingUpdate, "No pending update available")
         })?;
 
         // Emit detailed cancellation event
@@ -691,14 +641,14 @@ pub mod hoe_dex_protection {
         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
         validate_condition!(
             state.pending_update.is_some(),
-            ErrorCode::NoPendingUpdate,
+            crate::ErrorCode::NoPendingUpdate,
             "No pending update available"
         );
 
         let pending_update = state.pending_update.as_ref().unwrap();
         validate_condition!(
             current_time >= pending_update.scheduled_time,
-            ErrorCode::TimelockNotExpired,
+            crate::ErrorCode::TimelockNotExpired,
             "Timelock not yet expired"
         );
 
@@ -802,11 +752,11 @@ pub mod hoe_dex_protection {
         // Validate emergency admin
         validate_condition!(
             ctx.accounts.emergency_admin.key() == state.emergency_admin,
-            ErrorCode::InvalidEmergencyAdmin
+            crate::ErrorCode::InvalidEmergencyAdmin
         );
 
         // Validate not already paused
-        validate_condition!(!state.is_emergency_paused, ErrorCode::EmergencyPaused);
+        validate_condition!(!state.is_emergency_paused, crate::ErrorCode::EmergencyPaused);
 
         // Schedule emergency pause
         state.emergency_action_scheduled_time = current_time + 3600; // 1 hour timelock
@@ -833,13 +783,13 @@ pub mod hoe_dex_protection {
         // Validate emergency admin
         validate_condition!(
             ctx.accounts.emergency_admin.key() == state.emergency_admin,
-            ErrorCode::InvalidEmergencyAdmin
+            crate::ErrorCode::InvalidEmergencyAdmin
         );
 
         // Validate timelock has expired
         validate_condition!(
             current_time >= state.emergency_action_scheduled_time,
-            ErrorCode::TimelockNotExpired
+            crate::ErrorCode::TimelockNotExpired
         );
 
         // Apply emergency pause
@@ -868,11 +818,11 @@ pub mod hoe_dex_protection {
         // Validate emergency admin
         validate_condition!(
             ctx.accounts.emergency_admin.key() == state.emergency_admin,
-            ErrorCode::InvalidEmergencyAdmin
+            crate::ErrorCode::InvalidEmergencyAdmin
         );
         
         // Validate is paused
-        validate_condition!(state.is_emergency_paused, ErrorCode::PoolNotPaused);
+        validate_condition!(state.is_emergency_paused, crate::ErrorCode::PoolNotPaused);
 
         // Schedule emergency resume
         state.emergency_action_scheduled_time = current_time + 3600; // 1 hour timelock
@@ -899,13 +849,13 @@ pub mod hoe_dex_protection {
         // Validate emergency admin
         validate_condition!(
             ctx.accounts.emergency_admin.key() == state.emergency_admin,
-            ErrorCode::InvalidEmergencyAdmin
+            crate::ErrorCode::InvalidEmergencyAdmin
         );
         
         // Validate timelock has expired
         validate_condition!(
             current_time >= state.emergency_action_scheduled_time,
-            ErrorCode::TimelockNotExpired
+            crate::ErrorCode::TimelockNotExpired
         );
 
         // Apply emergency resume
@@ -937,7 +887,7 @@ pub mod hoe_dex_protection {
         // Validate cooldown has expired
         validate_condition!(
             current_time >= state.circuit_breaker.last_trigger + state.circuit_breaker.cooldown,
-            ErrorCode::CircuitBreakerCooldown
+            crate::ErrorCode::CircuitBreakerCooldown
         );
 
         // Reset circuit breaker
@@ -970,7 +920,7 @@ pub mod hoe_dex_protection {
         // Validate new admin
         validate_condition!(
             new_admin != state.admin && new_admin != state.emergency_admin,
-            ErrorCode::InvalidNewAdmin
+            crate::ErrorCode::InvalidNewAdmin
         );
 
         // Update admin
@@ -999,7 +949,7 @@ pub mod hoe_dex_protection {
         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
 
         // Validate pending update exists
-        validate_condition!(state.pending_update.is_some(), ErrorCode::NoPendingUpdate);
+        validate_condition!(state.pending_update.is_some(), crate::ErrorCode::NoPendingUpdate);
 
         // Reset pending update
         state.pending_update = None;
@@ -1037,141 +987,166 @@ pub mod hoe_dex_protection {
             emit!(PoolPaused {
                 pool: state.key(),
                 admin_pubkey: state.admin,
-                ts: current_time as i64,
+                ts: current_time,
             });
         } else {
             emit!(PoolResumed {
                 pool: state.key(),
                 admin_pubkey: state.admin,
-                ts: current_time as i64,
+                ts: current_time,
             });
         }
 
         Ok(())
     }
 
-    // Add fee tier validation function
-    pub fn validate_fee_tiers(fee_tiers: &[FeeTier]) -> Result<()> {
-        require!(!fee_tiers.is_empty(), ErrorCode::InvalidFeeTier);
-        require!(fee_tiers.len() <= MAX_FEE_TIERS, ErrorCode::TooManyFeeTiers);
+    pub fn initialize_default(&mut self) -> Result<()> {
+        let current_time = current_unix_ts()?;
+        self.pool_start_time = current_time;
+        self.last_update = current_time;
+        self.volume.last_reset = current_time;
+        self.rate_limit.last_reset = current_time;
+        self.circuit_breaker.last_trigger = current_time;
+        Ok(())
+    }
 
-        // Check for duplicate thresholds
-        let mut thresholds: Vec<u64> = fee_tiers.iter().map(|tier| tier.volume_threshold).collect();
-        thresholds.sort_unstable();
-        thresholds.dedup();
-        require!(thresholds.len() == fee_tiers.len(), ErrorCode::DuplicateFeeTierThreshold);
+    pub fn toggle_emergency_pause(&mut self, current_time: u64) -> Result<()> {
+        self.is_emergency_paused = !self.is_emergency_paused;
+        self.last_update = current_time;
 
-        // Validate fee ranges and spacing
-        for tier in fee_tiers {
-            require!(tier.fee_bps >= MINIMUM_FEE, ErrorCode::FeeTooLow);
-            require!(tier.fee_bps <= MAX_TIER_FEE_BPS, ErrorCode::FeeTooHigh);
-        }
-
-        // Check for proper spacing between thresholds
-        for i in 1..fee_tiers.len() {
-            let spacing = fee_tiers[i].volume_threshold
-                .checked_sub(fee_tiers[i - 1].volume_threshold)
-                .ok_or(ErrorCode::Overflow)?;
-            require!(spacing >= MIN_FEE_TIER_SPACING_BPS, ErrorCode::InvalidFeeTierSpacing);
+        if self.is_emergency_paused {
+            emit!(EmergencyPaused {
+                pool: self.key(),
+                emergency_admin_pubkey: self.emergency_admin,
+                ts: current_time,
+            });
+        } else {
+            emit!(EmergencyResumed {
+                pool: self.key(),
+                emergency_admin_pubkey: self.emergency_admin,
+                ts: current_time,
+            });
         }
 
         Ok(())
     }
 
-    pub fn validate_emergency_action(
-        pool_state: &PoolState,
-        emergency_admin: &Pubkey,
-        current_time: u64,
-    ) -> Result<()> {
-        // Check if caller is emergency admin
-        if emergency_admin != &pool_state.emergency_admin {
-            msg!("Unauthorized: expected emergency admin {} but got {}", 
-                pool_state.emergency_admin, 
-                emergency_admin
-            );
-            return Err(ErrorCode::InvalidEmergencyAdmin.into());
+    pub fn decay_volume(&mut self, current_time: u64) -> Result<()> {
+        if current_time < self.volume.last_reset {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
         }
 
-        // Check if pool is finalized
-        if pool_state.is_finalized {
-            msg!("Pool is finalized: emergency actions not allowed");
-            return Err(ErrorCode::PoolFinalized.into());
+        let time_diff = current_time - self.volume.last_reset;
+        if time_diff >= self.volume.decay_period {
+            let decay_factor = (time_diff as f64 / self.volume.decay_period as f64).floor() as u64;
+            self.volume.current_volume = self.volume.current_volume
+                .saturating_sub(
+                    self.volume.current_volume.saturating_mul(decay_factor) / self.volume.decay_period
+                );
+            self.volume.last_reset = current_time;
         }
-
-        // Check if emergency action is already scheduled
-        if pool_state.emergency_action_scheduled_time > 0 {
-            msg!("Emergency action already scheduled for timestamp {}", 
-                pool_state.emergency_action_scheduled_time
-            );
-            return Err(ErrorCode::OperationFailed.into());
-        }
-
-        // Check if emergency action is within timelock
-        let timelock_end = pool_state.last_update + EMERGENCY_TIMELOCK_SECONDS;
-        if current_time < timelock_end {
-            msg!("Emergency action timelock not expired: {} seconds remaining", 
-                timelock_end - current_time
-            );
-            return Err(ErrorCode::TimelockNotExpired.into());
-        }
-
         Ok(())
     }
 
-    pub fn validate_token_operation(
-        pool_state: &PoolState,
-        token_account: &Account<TokenAccount>,
-        token_mint: &Account<Mint>,
-        owner: &Pubkey,
-    ) -> Result<()> {
-        // Check token mint
-        if token_mint.key() != pool_state.token_mint {
-            msg!("Invalid token mint: expected {} but got {}", 
-                pool_state.token_mint, 
-                token_mint.key()
-            );
-            return Err(ErrorCode::InvalidTokenMint.into());
+    pub fn update_volume(&mut self, amount: u64, current_time: u64) -> Result<()> {
+        self.decay_volume(current_time)?;
+        self.volume.current_volume = self.volume.current_volume.saturating_add(amount);
+        Ok(())
+    }
+
+    pub fn check_volume_limit(&self, current_time: u64) -> Result<()> {
+        if current_time < self.volume.last_reset {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
         }
 
-        // Check token decimals
-        if token_mint.decimals != pool_state.token_decimals {
-            msg!("Invalid token decimals: expected {} but got {}", 
-                pool_state.token_decimals, 
-                token_mint.decimals
-            );
-            return Err(ErrorCode::InvalidTokenDecimals.into());
+        let time_diff = current_time - self.volume.last_reset;
+        if time_diff >= self.volume.decay_period {
+            return Ok(());
         }
 
-        // Check freeze authority
-        if token_mint.freeze_authority.is_some() {
-            msg!("Token mint has freeze authority: {}", token_mint.freeze_authority.unwrap());
-            return Err(ErrorCode::TokenMintHasFreezeAuthority.into());
+        validate_condition!(
+            self.volume.current_volume <= self.volume.max_daily,
+            crate::ErrorCode::VolumeLimitExceeded
+        );
+        Ok(())
+    }
+
+    pub fn check_rate_limit(&self, amount: u64, current_time: u64) -> Result<()> {
+        if current_time < self.rate_limit.last_reset {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
         }
 
-        // Check token account
-        if token_account.mint != pool_state.token_mint {
-            msg!("Invalid token account mint: expected {} but got {}", 
-                pool_state.token_mint, 
-                token_account.mint
-            );
-            return Err(ErrorCode::InvalidTokenAccount.into());
+        let time_diff = current_time - self.rate_limit.last_reset;
+        if time_diff >= self.rate_limit.window_size {
+            return Ok(());
         }
 
-        // Check token account owner
-        if token_account.owner != *owner {
-            msg!("Invalid token account owner: expected {} but got {}", 
-                owner, 
-                token_account.owner
-            );
-            return Err(ErrorCode::InvalidTokenAccount.into());
+        validate_condition!(
+            amount <= self.rate_limit.max_per_window,
+            crate::ErrorCode::RateLimitExceeded
+        );
+        Ok(())
+    }
+
+    pub fn update_rate_limit(&mut self, amount: u64, current_time: u64) -> Result<()> {
+        if current_time < self.rate_limit.last_reset {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
         }
 
-        // Check delegation
-        if token_account.is_delegated() {
-            msg!("Token account is delegated: {}", token_account.delegate.unwrap());
-            return Err(ErrorCode::TokenAccountDelegated.into());
+        let time_diff = current_time - self.rate_limit.last_reset;
+        if time_diff >= self.rate_limit.window_size {
+            self.rate_limit.last_reset = current_time;
+            return Ok(());
         }
 
+        self.rate_limit.current_window = self.rate_limit.current_window.saturating_add(amount);
+        validate_condition!(
+            self.rate_limit.current_window <= self.rate_limit.max_per_window,
+            crate::ErrorCode::RateLimitExceeded
+        );
+        Ok(())
+    }
+
+    pub fn check_circuit_breaker(&self, amount: u64, current_time: u64) -> Result<()> {
+        if current_time < self.circuit_breaker.last_trigger {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
+        }
+
+        let time_diff = current_time - self.circuit_breaker.last_trigger;
+        if time_diff >= self.circuit_breaker.cooldown_period {
+            return Ok(());
+        }
+
+        validate_condition!(
+            amount <= self.circuit_breaker.max_amount,
+            crate::ErrorCode::CircuitBreakerTriggered
+        );
+        Ok(())
+    }
+
+    pub fn update_circuit_breaker(&mut self, amount: u64, current_time: u64) -> Result<()> {
+        if current_time < self.circuit_breaker.last_trigger {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
+        }
+
+        let time_diff = current_time - self.circuit_breaker.last_trigger;
+        if time_diff >= self.circuit_breaker.cooldown_period {
+            self.circuit_breaker.last_trigger = current_time;
+            return Ok(());
+        }
+
+        validate_condition!(
+            amount <= self.circuit_breaker.max_amount,
+            crate::ErrorCode::CircuitBreakerTriggered
+        );
+        Ok(())
+    }
+
+    pub fn initialize(&mut self, admin: &Pubkey, token_mint: &Pubkey, bump: u8) -> Result<()> {
+        self.admin = *admin;
+        self.token_mint = *token_mint;
+        self.bump = bump;
+        self.initialize_default()?;
         Ok(())
     }
 }
@@ -1275,7 +1250,7 @@ pub struct ExecuteTrade<'info> {
         #[account(
             seeds = [b"reentrancy_guard", pool_state.key().as_ref()],
             bump,
-            constraint = reentrancy_guard.to_account_info().owner == program_id
+            constraint = reentrancy_guard.to_account_info().owner == crate::ID
         )]
         pub reentrancy_guard: UncheckedAccount<'info>,
 }
@@ -1290,7 +1265,7 @@ pub struct ExecuteTrade<'info> {
         #[account(
             seeds = [b"reentrancy_guard", pool_state.key().as_ref()],
             bump,
-            constraint = reentrancy_guard.to_account_info().owner == program_id
+            constraint = reentrancy_guard.to_account_info().owner == crate::ID
         )]
         pub reentrancy_guard: UncheckedAccount<'info>,
 }
@@ -1354,7 +1329,7 @@ pub fn derive_pool_authority(pool_state: &Pubkey, program_id: &Pubkey) -> Result
     Pubkey::find_program_address(
         &[b"pool_authority", pool_state.as_ref()],
         program_id,
-    ).ok_or(ErrorCode::InvalidPoolAuthority)
+    ).ok_or(crate::ErrorCode::InvalidPoolAuthority)
 }
 
 // Add helper function for CPI context with proper error handling
@@ -1362,56 +1337,53 @@ pub fn with_pool_signer<'info>(
     program_id: &Pubkey,
     pool_state: &Account<'info, PoolState>,
     remaining_accounts: &[AccountInfo<'info>],
-) -> Result<CpiContext<'info, 'info, 'info, 'info, Transfer>> {
+) -> Result<CpiContext<'info, 'info, 'info, 'info, Transfer<'info>>> {
     let (pool_authority, bump) = derive_pool_authority(&pool_state.key(), program_id)?;
-    let seeds = &[
+    let seeds: &[&[&[u8]]] = &[&[
         b"pool_authority".as_ref(),
         pool_state.key().as_ref(),
         &[bump],
-    ];
-    let signer = &[&seeds[..]];
-    Ok(CpiContext::new(
-        remaining_accounts[0].clone(),
+    ]];
+    Ok(CpiContext::new_with_signer(
+        remaining_accounts[0].clone(), // token_program
         Transfer {
             from: remaining_accounts[1].clone(),
             to: remaining_accounts[2].clone(),
-            authority: pool_authority,
+            authority: remaining_accounts[3].clone(), // pool_authority as AccountInfo
         },
+        seeds,
     ))
 }
 
 #[account]
+#[derive(Default)]
 pub struct PoolState {
-    pub version: u8,
-    pub migration_flag: bool,
-    pub is_initialized: bool,
     pub admin: Pubkey,
     pub emergency_admin: Pubkey,
     pub token_mint: Pubkey,
     pub token_decimals: u8,
-    pub total_fees_collected: u64,
     pub total_liquidity: u64,
+    pub total_fees_collected: u64,
+    pub is_initialized: bool,
     pub is_paused: bool,
-    pub is_emergency_paused: bool,
     pub is_finalized: bool,
     pub pool_start_time: u64,
     pub last_update: u64,
-    pub last_admin_update: u64,
-    pub last_fee_withdrawal: u64, // Track last fee withdrawal
-    pub emergency_action_scheduled_time: u64,
-    pub pending_update: Option<PendingUpdate>,
-    pub trade_settings: TradeSettings,
-    pub rate_limit: RateLimitSettings,
-    pub circuit_breaker: CircuitBreakerSettings,
-    pub volume: VolumeSettings,
-    pub protection: ProtectionSettings,
     pub fee_tiers: Vec<FeeTier>,
     pub fee_tiers_locked: bool,
-    pub default_fee_bps: Option<u64>,
+    pub default_fee_bps: Option<u16>,
+    pub volume: VolumeSettings,
+    pub rate_limit: RateLimitSettings,
+    pub circuit_breaker: CircuitBreakerSettings,
+    pub protection: ProtectionSettings,
+    pub trade_settings: TradeSettings,
+    pub pending_update: Option<PendingUpdate>,
+    pub emergency_action_scheduled_time: u64,
     pub trader_blacklist: Vec<Pubkey>,
-    pub instruction_counter: u64,
-    pub bump: u8, // Store PDA bump
-    pub pool_id: [u8; 32], // Unique pool identifier
+    pub whitelist: Vec<Pubkey>,
+    pub is_emergency_paused: bool,
+    pub bump: u8,
+    pub pool_id: [u8; 32],
 }
 
 impl PoolState {
@@ -1428,6 +1400,16 @@ impl PoolState {
         base_size + fee_tiers_size + blacklist_size + pending_update_size + 32
     }
 
+    pub fn initialize_default(&mut self) -> Result<()> {
+        let current_time = current_unix_ts()?;
+        self.pool_start_time = current_time;
+        self.last_update = current_time;
+        self.volume.last_reset = current_time;
+        self.rate_limit.last_reset = current_time;
+        self.circuit_breaker.last_trigger = current_time;
+        Ok(())
+    }
+
     pub fn toggle_pause(&mut self, current_time: u64) -> Result<()> {
         self.is_paused = !self.is_paused;
         self.last_update = current_time;
@@ -1436,34 +1418,13 @@ impl PoolState {
             emit!(PoolPaused {
                 pool: self.key(),
                 admin_pubkey: self.admin,
-                ts: current_time as i64,
+                ts: current_time,
             });
         } else {
             emit!(PoolResumed {
                 pool: self.key(),
                 admin_pubkey: self.admin,
-                ts: current_time as i64,
-            });
-        }
-
-        Ok(())
-    }
-
-    pub fn toggle_emergency_pause(&mut self, current_time: u64) -> Result<()> {
-        self.is_emergency_paused = !self.is_emergency_paused;
-        self.last_update = current_time;
-
-        if self.is_emergency_paused {
-            emit!(EmergencyPaused {
-                pool: self.key(),
-                emergency_admin_pubkey: self.emergency_admin,
-                ts: current_time as i64,
-            });
-        } else {
-            emit!(EmergencyResumed {
-                pool: self.key(),
-                emergency_admin_pubkey: self.emergency_admin,
-                ts: current_time as i64,
+                ts: current_time,
             });
         }
 
@@ -1471,32 +1432,113 @@ impl PoolState {
     }
 
     pub fn decay_volume(&mut self, current_time: u64) -> Result<()> {
-        let hours_passed = current_time
-            .checked_sub(self.volume.last_reset)
-            .ok_or_else(|| {
-                msg!("Failed to calculate hours passed: {} - {}", current_time, self.volume.last_reset);
-                return Err(ErrorCode::InvalidTimestamp.into());
-            })?
-            .checked_div(3600)
-            .ok_or_else(|| {
-                msg!("Hours calculation overflow: {} / 3600", current_time - self.volume.last_reset);
-                return Err(ErrorCode::Overflow.into());
-            })?;
-
-        if hours_passed > 0 {
-            let decay_factor = 100u64.saturating_sub(hours_passed.min(24));
-            let new_volume = self.volume.current_volume
-                .saturating_mul(decay_factor)
-                .checked_div(100)
-                .ok_or_else(|| {
-                    msg!("Volume decay calculation overflow: {} * {} / 100", self.volume.current_volume, decay_factor);
-                    return Err(ErrorCode::Overflow.into());
-                })?;
-
-            self.volume.current_volume = new_volume;
-            self.volume.last_reset = current_time;
+        if current_time < self.volume.last_reset {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
         }
 
+        let time_diff = current_time - self.volume.last_reset;
+        if time_diff >= self.volume.decay_period {
+            let decay_factor = (time_diff as f64 / self.volume.decay_period as f64).floor() as u64;
+            self.volume.current_volume = self.volume.current_volume
+                .saturating_sub(
+                    self.volume.current_volume.saturating_mul(decay_factor) / self.volume.decay_period
+                );
+            self.volume.last_reset = current_time;
+        }
+        Ok(())
+    }
+
+    pub fn update_volume(&mut self, amount: u64, current_time: u64) -> Result<()> {
+        self.decay_volume(current_time)?;
+        self.volume.current_volume = self.volume.current_volume.saturating_add(amount);
+        Ok(())
+    }
+
+    pub fn check_volume_limit(&self, current_time: u64) -> Result<()> {
+        if current_time < self.volume.last_reset {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
+        }
+
+        let time_diff = current_time - self.volume.last_reset;
+        if time_diff >= self.volume.decay_period {
+            return Ok(());
+        }
+
+        validate_condition!(
+            self.volume.current_volume <= self.volume.max_daily,
+            crate::ErrorCode::VolumeLimitExceeded
+        );
+        Ok(())
+    }
+
+    pub fn check_rate_limit(&self, amount: u64, current_time: u64) -> Result<()> {
+        if current_time < self.rate_limit.last_reset {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
+        }
+
+        let time_diff = current_time - self.rate_limit.last_reset;
+        if time_diff >= self.rate_limit.window_size {
+            return Ok(());
+        }
+
+        validate_condition!(
+            amount <= self.rate_limit.max_per_window,
+            crate::ErrorCode::RateLimitExceeded
+        );
+        Ok(())
+    }
+
+    pub fn update_rate_limit(&mut self, amount: u64, current_time: u64) -> Result<()> {
+        if current_time < self.rate_limit.last_reset {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
+        }
+
+        let time_diff = current_time - self.rate_limit.last_reset;
+        if time_diff >= self.rate_limit.window_size {
+            self.rate_limit.last_reset = current_time;
+            return Ok(());
+        }
+
+        self.rate_limit.current_window = self.rate_limit.current_window.saturating_add(amount);
+        validate_condition!(
+            self.rate_limit.current_window <= self.rate_limit.max_per_window,
+            crate::ErrorCode::RateLimitExceeded
+        );
+        Ok(())
+    }
+
+    pub fn check_circuit_breaker(&self, amount: u64, current_time: u64) -> Result<()> {
+        if current_time < self.circuit_breaker.last_trigger {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
+        }
+
+        let time_diff = current_time - self.circuit_breaker.last_trigger;
+        if time_diff >= self.circuit_breaker.cooldown_period {
+            return Ok(());
+        }
+
+        validate_condition!(
+            amount <= self.circuit_breaker.max_amount,
+            crate::ErrorCode::CircuitBreakerTriggered
+        );
+        Ok(())
+    }
+
+    pub fn update_circuit_breaker(&mut self, amount: u64, current_time: u64) -> Result<()> {
+        if current_time < self.circuit_breaker.last_trigger {
+            return Err(crate::ErrorCode::InvalidTimestamp.into());
+        }
+
+        let time_diff = current_time - self.circuit_breaker.last_trigger;
+        if time_diff >= self.circuit_breaker.cooldown_period {
+            self.circuit_breaker.last_trigger = current_time;
+            return Ok(());
+        }
+
+        validate_condition!(
+            amount <= self.circuit_breaker.max_amount,
+            crate::ErrorCode::CircuitBreakerTriggered
+        );
         Ok(())
     }
 
@@ -1516,43 +1558,49 @@ impl PoolState {
     }
 
     pub fn pause_pool(&mut self, current_time: u64) -> Result<()> {
-        require!(!self.is_paused, ErrorCode::PoolPaused);
+        require!(!self.is_paused, crate::ErrorCode::PoolPaused);
         self.is_paused = true;
         self.last_update = current_time;
 
         emit!(PoolPaused {
             pool: self.key(),
             admin_pubkey: self.admin,
-            ts: current_time as i64,
+            ts: current_time,
         });
 
         Ok(())
     }
 
     pub fn resume_pool(&mut self, current_time: u64) -> Result<()> {
-        require!(self.is_paused, ErrorCode::PoolNotPaused);
+        require!(self.is_paused, crate::ErrorCode::PoolNotPaused);
         self.is_paused = false;
         self.last_update = current_time;
 
         emit!(PoolResumed {
             pool: self.key(),
             admin_pubkey: self.admin,
-            ts: current_time as i64,
+            ts: current_time,
         });
 
         Ok(())
     }
 
     pub fn check_token_mint(&self, mint: &Account<Mint>) -> Result<()> {
-        validate_condition!(mint.key() == self.token_mint, ErrorCode::InvalidTokenMint);
-        validate_condition!(mint.decimals == self.token_decimals, ErrorCode::InvalidTokenDecimals);
-        validate_condition!(mint.freeze_authority.is_none(), ErrorCode::TokenMintHasFreezeAuthority);
+        validate_condition!(mint.key() == self.token_mint, crate::ErrorCode::InvalidTokenMint);
+        validate_condition!(mint.decimals == self.token_decimals, crate::ErrorCode::InvalidTokenDecimals);
+        validate_condition!(mint.freeze_authority.is_none(), crate::ErrorCode::TokenMintHasFreezeAuthority);
         Ok(())
     }
 
     pub fn check_token_account(&self, account: &Account<TokenAccount>, mint: &Pubkey) -> Result<()> {
-        validate_condition!(account.mint == *mint, ErrorCode::InvalidTokenAccount);
-        validate_condition!(!account.is_delegated(), ErrorCode::TokenAccountDelegated);
+        if account.mint != *mint {
+            msg!("Invalid token account mint: expected {} but got {}", mint, account.mint);
+            return Err(crate::ErrorCode::InvalidTokenAccount.into());
+        }
+        if account.is_delegated() {
+            msg!("Token account is delegated: {}", account.key());
+            return Err(crate::ErrorCode::TokenAccountDelegated.into());
+        }
         Ok(())
     }
 
@@ -1603,92 +1651,74 @@ impl PoolState {
         // Calculate price impact in basis points
         let impact = amount_in
             .checked_mul(10000)
-            .ok_or(ErrorCode::Overflow)?
+            .ok_or(crate::ErrorCode::Overflow)?
             .checked_div(pool_balance)
-            .ok_or(ErrorCode::Overflow)?;
+            .ok_or(crate::ErrorCode::Overflow)?;
 
         Ok(impact)
     }
 
-    /// Enforces minimum fee requirements and handles edge cases
+    /// Calculate fee for a trade
     /// 
-    /// # Arguments
-    /// * `fee` - The calculated fee amount
-    /// 
-    /// # Returns
-    /// * `Result<u64>` - The enforced minimum fee
-    pub fn enforce_min_fee(&self, fee: u64) -> Result<u64> {
-        // Ensure fee is at least MINIMUM_FEE to prevent zero-fee edge cases
-        let min_fee = fee.max(MINIMUM_FEE);
-        
-        // Check for overflow after max operation
-        if min_fee < fee {
-            return Err(ErrorCode::Overflow.into());
-        }
-
-        Ok(min_fee)
-    }
-
-    pub fn calculate_fee(&self, amount_in: u64, current_time: i64) -> Result<(u64, u8)> {
-        // Check if we're in early trade window
-        let pool_age = current_time
-            .checked_sub(self.pool_start_time as i64)
-            .ok_or_else(|| {
-                msg!("Failed to calculate pool age: {} - {}", current_time, self.pool_start_time);
-                return Err(ErrorCode::InvalidTimestamp.into());
-            })?;
-
-        if pool_age < self.trade_settings.early_trade_window_seconds as i64 {
-            // Apply early trade fee
-            let fee = self.trade_settings.early_trade_fee_bps
-                .checked_mul(amount_in)
-                .ok_or_else(|| {
-                    msg!("Fee calculation overflow: {} * {}", self.trade_settings.early_trade_fee_bps, amount_in);
-                    return Err(ErrorCode::Overflow.into());
-                })?
+    /// This function calculates the fee for a trade based on:
+    /// 1. Whether we're in the early trade window
+    /// 2. The current volume and applicable fee tier
+    /// 3. Returns both the fee amount and the fee mode for tracking
+    fn calculate_fee(pool_state: &PoolState, amount_in: u64, current_time: i64) -> Result<(u64, u8)> {
+        // Early trade fee if within protection window
+        if current_time - pool_state.pool_start_time as i64 <= pool_state.trade_settings.early_trade_window_seconds as i64 {
+            let fee = amount_in
+                .checked_mul(pool_state.trade_settings.early_trade_fee_bps)
+                .ok_or(crate::ErrorCode::Overflow)?
                 .checked_div(10000)
-                .ok_or_else(|| {
-                    msg!("Fee calculation division overflow: {} / 10000", self.trade_settings.early_trade_fee_bps * amount_in);
-                    return Err(ErrorCode::Overflow.into());
-                })?;
-
-            // Ensure minimum fee
-            let fee = self.enforce_min_fee(fee)?;
-            return Ok((fee, FEE_MODE_EARLY_TRADE));
+                .ok_or(crate::ErrorCode::Overflow)?;
+            
+            // Use default fee if configured, otherwise minimum fee
+            let effective_fee = if fee == 0 {
+                pool_state.default_fee_bps
+                    .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
+                    .unwrap_or(MINIMUM_FEE)
+            } else {
+                fee.max(MINIMUM_FEE)
+            };
+            
+            return Ok((effective_fee, FEE_MODE_EARLY_TRADE));
         }
 
-        // Find applicable fee tier
-        for tier in &self.fee_tiers {
-            if self.volume.current_volume <= tier.volume_threshold {
-                let fee = tier.fee_bps
-                    .checked_mul(amount_in)
-                    .ok_or(ErrorCode::Overflow)?
+        // Find applicable fee tier based on volume
+        for tier in &pool_state.fee_tiers {
+            if pool_state.volume.current_volume <= tier.volume_threshold {
+                let fee = amount_in
+                    .checked_mul(tier.fee_bps)
+                    .ok_or(crate::ErrorCode::Overflow)?
                     .checked_div(10000)
-                    .ok_or(ErrorCode::Overflow)?;
-
-                // Ensure minimum fee
-                let fee = self.enforce_min_fee(fee)?;
-                return Ok((fee, FEE_MODE_TIER_BASED));
+                    .ok_or(crate::ErrorCode::Overflow)?;
+                
+                // Use default fee if configured, otherwise minimum fee
+                let effective_fee = if fee == 0 {
+                    pool_state.default_fee_bps
+                        .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
+                        .unwrap_or(MINIMUM_FEE)
+                } else {
+                    fee.max(MINIMUM_FEE)
+                };
+                
+                return Ok((effective_fee, FEE_MODE_TIER_BASED));
             }
         }
 
         // Use default fee if configured, otherwise minimum fee
-        let default_fee_bps = self.default_fee_bps.unwrap_or(MINIMUM_FEE_BPS);
-        let fee = default_fee_bps
-            .checked_mul(amount_in)
-            .ok_or(ErrorCode::Overflow)?
-            .checked_div(10000)
-            .ok_or(ErrorCode::Overflow)?;
+        let fallback_fee = pool_state.default_fee_bps
+            .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
+            .unwrap_or(MINIMUM_FEE);
 
-        // Ensure minimum fee
-        let fee = self.enforce_min_fee(fee)?;
-        Ok((fee, FEE_MODE_NONE))
+        Ok((fallback_fee, FEE_MODE_NONE))
     }
 
     pub fn schedule_emergency_pause(&mut self, current_time: u64) -> Result<()> {
         let scheduled_time = current_time
             .checked_add(EMERGENCY_TIMELOCK_SECONDS)
-            .ok_or(ErrorCode::Overflow)?;
+            .ok_or(crate::ErrorCode::Overflow)?;
 
         self.emergency_action_scheduled_time = scheduled_time;
         Ok(())
@@ -1697,7 +1727,7 @@ impl PoolState {
     pub fn schedule_emergency_resume(&mut self, current_time: u64) -> Result<()> {
         let scheduled_time = current_time
             .checked_add(EMERGENCY_TIMELOCK_SECONDS)
-            .ok_or(ErrorCode::Overflow)?;
+            .ok_or(crate::ErrorCode::Overflow)?;
 
         self.emergency_action_scheduled_time = scheduled_time;
         Ok(())
@@ -1707,13 +1737,13 @@ impl PoolState {
         // Check if fee tiers are empty
         if fee_tiers.is_empty() {
             msg!("Fee tiers cannot be empty");
-            return Err(ErrorCode::InvalidFeeTier.into());
+            return Err(crate::ErrorCode::InvalidFeeTier.into());
         }
 
         // Check if too many fee tiers
         if fee_tiers.len() > MAX_FEE_TIERS {
             msg!("Too many fee tiers: {} > {}", fee_tiers.len(), MAX_FEE_TIERS);
-            return Err(ErrorCode::TooManyFeeTiers.into());
+            return Err(crate::ErrorCode::TooManyFeeTiers.into());
         }
 
         // Validate each tier
@@ -1728,7 +1758,7 @@ impl PoolState {
                     tier.volume_threshold, 
                     prev_threshold
                 );
-                return Err(ErrorCode::InvalidFeeTierSpacing.into());
+                return Err(crate::ErrorCode::InvalidFeeTierSpacing.into());
             }
 
             // Check fee bounds
@@ -1738,7 +1768,7 @@ impl PoolState {
                     tier.fee_bps, 
                     MINIMUM_FEE_BPS
                 );
-                return Err(ErrorCode::FeeTooLow.into());
+                return Err(crate::ErrorCode::FeeTooLow.into());
             }
             if tier.fee_bps > MAXIMUM_FEE_BPS {
                 msg!("Fee too high at index {}: {} > {}", 
@@ -1746,7 +1776,7 @@ impl PoolState {
                     tier.fee_bps, 
                     MAXIMUM_FEE_BPS
                 );
-                return Err(ErrorCode::FeeTooHigh.into());
+                return Err(crate::ErrorCode::FeeTooHigh.into());
             }
 
             // Check fee monotonicity (fees should be non-increasing)
@@ -1756,13 +1786,13 @@ impl PoolState {
                     tier.fee_bps, 
                     prev_fee
                 );
-                return Err(ErrorCode::InvalidFeeTier.into());
+                return Err(crate::ErrorCode::InvalidFeeTier.into());
             }
 
             // Check for duplicate fees
             if tier.fee_bps == prev_fee {
                 msg!("Duplicate fee at index {}: {}", i, tier.fee_bps);
-                return Err(ErrorCode::DuplicateFeeTierThreshold.into());
+                return Err(crate::ErrorCode::DuplicateFeeTierThreshold.into());
             }
 
             prev_threshold = tier.volume_threshold;
@@ -1775,7 +1805,7 @@ impl PoolState {
     pub fn validate_fee_bounds(&self, fee_bps: u64) -> Result<()> {
         validate_condition!(
             fee_bps >= MINIMUM_FEE_BPS && fee_bps <= MAXIMUM_FEE_BPS,
-            ErrorCode::FeeTooLow,
+            crate::ErrorCode::FeeTooLow,
             "Fee {} bps outside allowed range [{}, {}]",
             fee_bps,
             MINIMUM_FEE_BPS,
@@ -1811,8 +1841,10 @@ impl PoolState {
         self.admin = *admin;
         self.token_mint = *token_mint;
         self.is_initialized = true;
-        self.pool_start_time = current_unix_ts()?;
-        self.last_update = current_unix_ts()?;
+        self.pool_start_time = current_unix_ts()?.try_into().unwrap();
+        self.last_update = current_unix_ts()?.try_into().unwrap();
+        self.volume.last_reset = current_unix_ts()?.try_into().unwrap();
+        self.rate_limit.window_start = current_unix_ts()?;
         Ok(())
     }
 
@@ -1837,7 +1869,7 @@ impl PoolState {
             // Check threshold ordering
             validate_condition!(
                 tier.volume_threshold > prev_threshold,
-                ErrorCode::InvalidFeeTier,
+                crate::ErrorCode::InvalidFeeTier,
                 "Fee tier threshold {} not strictly increasing",
                 tier.volume_threshold
             );
@@ -1845,7 +1877,7 @@ impl PoolState {
             // Check fee ordering
             validate_condition!(
                 tier.fee_bps <= prev_fee,
-                ErrorCode::InvalidFeeTier,
+                crate::ErrorCode::InvalidFeeTier,
                 "Fee tier {} bps not non-increasing",
                 tier.fee_bps
             );
@@ -1858,21 +1890,20 @@ impl PoolState {
     }
 
     pub fn check_rate_limit(&mut self, current_time: u64) -> Result<()> {
-        if current_time >= self.rate_limit.last_reset + self.rate_limit.window_seconds {
+        // Check if we're in a new window
+        if current_time - self.rate_limit.last_reset >= self.rate_limit.window_seconds {
             self.rate_limit.count = 0;
             self.rate_limit.last_reset = current_time;
         }
-        
+
+        // Check if we've exceeded the rate limit
         if self.rate_limit.count >= self.rate_limit.max_calls {
-            msg!("Rate limit exceeded: {} calls in window (max: {})", 
-                self.rate_limit.count, 
-                self.rate_limit.max_calls
-            );
-            return Err(ErrorCode::RateLimitExceeded.into());
+            msg!("Rate limit exceeded: {} calls in window (max: {})", self.rate_limit.count, self.rate_limit.max_calls);
+            return Err(crate::ErrorCode::RateLimitExceeded.into());
         }
         
         self.rate_limit.count = self.rate_limit.count.checked_add(1)
-            .ok_or(ErrorCode::Overflow)?;
+            .ok_or(crate::ErrorCode::Overflow)?;
             
         Ok(())
     }
@@ -1882,7 +1913,7 @@ impl ValidationHelpers for PoolState {
     fn check_token_account_ownership(&self, owner: &Pubkey) -> Result<()> {
         if owner != &self.admin {
             msg!("Unauthorized: expected admin {} but got {}", self.admin, owner);
-            return Err(ErrorCode::Unauthorized.into());
+            return Err(crate::ErrorCode::Unauthorized.into());
         }
         Ok(())
     }
@@ -1891,7 +1922,7 @@ impl ValidationHelpers for PoolState {
         let (expected_authority, _) = derive_pool_authority(&self.key(), program_id)?;
         if authority != &expected_authority {
             msg!("Invalid pool authority: expected {} but got {}", expected_authority, authority);
-            return Err(ErrorCode::InvalidPoolAuthority.into());
+            return Err(crate::ErrorCode::InvalidPoolAuthority.into());
         }
         Ok(())
     }
@@ -1899,15 +1930,18 @@ impl ValidationHelpers for PoolState {
     fn check_token_mint(&self, mint: &Account<Mint>) -> Result<()> {
         if mint.key() != self.token_mint {
             msg!("Invalid token mint: expected {} but got {}", self.token_mint, mint.key());
-            return Err(ErrorCode::InvalidTokenMint.into());
+            return Err(crate::ErrorCode::InvalidTokenMint.into());
         }
         if mint.decimals != self.token_decimals {
-            msg!("Invalid token decimals: expected {} but got {}", self.token_decimals, mint.decimals);
-            return Err(ErrorCode::InvalidTokenDecimals.into());
+            msg!("Invalid token decimals: expected {} but got {}", 
+                self.token_decimals, 
+                mint.decimals
+            );
+            return Err(crate::ErrorCode::InvalidTokenDecimals.into());
         }
         if mint.freeze_authority.is_some() {
             msg!("Token mint has freeze authority: {}", mint.freeze_authority.unwrap());
-            return Err(ErrorCode::TokenMintHasFreezeAuthority.into());
+            return Err(crate::ErrorCode::TokenMintHasFreezeAuthority.into());
         }
         Ok(())
     }
@@ -1915,25 +1949,25 @@ impl ValidationHelpers for PoolState {
     fn check_token_account(&self, account: &Account<TokenAccount>, mint: &Pubkey) -> Result<()> {
         if account.mint != *mint {
             msg!("Invalid token account mint: expected {} but got {}", mint, account.mint);
-            return Err(ErrorCode::InvalidTokenAccount.into());
+            return Err(crate::ErrorCode::InvalidTokenAccount.into());
         }
         if account.is_delegated() {
             msg!("Token account is delegated: {}", account.key());
-            return Err(ErrorCode::TokenAccountDelegated.into());
+            return Err(crate::ErrorCode::TokenAccountDelegated.into());
         }
         Ok(())
     }
 
-    fn check_circuit_breaker(&self, current_time: u64) -> Result<()> {
+    fn check_circuit_breaker(&self, current_time: i64) -> Result<()> {
         let cooldown_end = self.circuit_breaker.last_trigger + self.circuit_breaker.cooldown;
         if current_time < cooldown_end {
             msg!("Circuit breaker cooldown active: {} seconds remaining", cooldown_end - current_time);
-            return Err(ErrorCode::CircuitBreakerCooldown.into());
+            return Err(crate::ErrorCode::CircuitBreakerCooldown.into());
         }
         Ok(())
     }
 
-    fn check_rate_limit(&self, current_time: u64) -> Result<()> {
+    fn check_rate_limit(&self, current_time: i64) -> Result<()> {
         let window_end = self.rate_limit.last_reset + self.rate_limit.window_seconds;
         if current_time >= window_end {
             msg!("Rate limit window expired: resetting counter");
@@ -1941,7 +1975,7 @@ impl ValidationHelpers for PoolState {
         }
         if self.rate_limit.count >= self.rate_limit.max_calls {
             msg!("Rate limit exceeded: {} calls in window (max: {})", self.rate_limit.count, self.rate_limit.max_calls);
-            return Err(ErrorCode::RateLimitExceeded.into());
+            return Err(crate::ErrorCode::RateLimitExceeded.into());
         }
         Ok(())
     }
@@ -1949,11 +1983,11 @@ impl ValidationHelpers for PoolState {
     fn check_volume_limit(&self, amount: u64) -> Result<()> {
         let new_volume = self.volume.current_volume.checked_add(amount).ok_or_else(|| {
             msg!("Volume overflow: {} + {}", self.volume.current_volume, amount);
-            error!(ErrorCode::Overflow)
+            error!(crate::ErrorCode::Overflow)
         })?;
-        if new_volume > self.volume.max_daily {
-            msg!("Daily volume limit exceeded: {} > {}", new_volume, self.volume.max_daily);
-            return Err(ErrorCode::DailyVolumeLimitExceeded.into());
+        if new_volume > self.volume.daily_limit {
+            msg!("Daily volume limit exceeded: {} > {}", new_volume, self.volume.daily_limit);
+            return Err(crate::ErrorCode::DailyVolumeLimitExceeded.into());
         }
         Ok(())
     }
@@ -1973,6 +2007,18 @@ macro_rules! validate_condition {
             return Err($error.into());
         }
     };
+    ($condition:expr, $error:expr, $msg:expr) => {
+        if !$condition {
+            msg!($msg);
+            return Err($error.into());
+        }
+    };
+    ($condition:expr, $error:expr, $msg:expr, $($arg:tt)*) => {
+        if !$condition {
+            msg!($msg, $($arg)*);
+            return Err($error.into());
+        }
+    };
 }
 
 pub trait ValidationHelpers {
@@ -1980,8 +2026,8 @@ pub trait ValidationHelpers {
     fn check_pool_authority(&self, authority: &Pubkey, program_id: &Pubkey) -> Result<()>;
     fn check_token_mint(&self, mint: &Account<Mint>) -> Result<()>;
     fn check_token_account(&self, account: &Account<TokenAccount>, mint: &Pubkey) -> Result<()>;
-    fn check_circuit_breaker(&self, current_time: u64) -> Result<()>;
-    fn check_rate_limit(&self, current_time: u64) -> Result<()>;
+    fn check_circuit_breaker(&self, current_time: i64) -> Result<()>;
+    fn check_rate_limit(&self, current_time: i64) -> Result<()>;
     fn check_volume_limit(&self, amount: u64) -> Result<()>;
 }
 
@@ -1998,7 +2044,7 @@ macro_rules! error {
     };
 }
 
-fn current_unix_ts() -> Result<i64> {
+fn current_unix_ts() -> Result<u64> {
     let clock = Clock::get()?;
-    Ok(clock.unix_timestamp)
+    Ok(clock.unix_timestamp as u64)
 }

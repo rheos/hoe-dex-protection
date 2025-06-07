@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct TradeSettings {
     pub max_size_bps: u64,
     pub min_size: u64,
@@ -10,10 +10,13 @@ pub struct TradeSettings {
     pub early_trade_window_seconds: u64,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct ProtectionSettings {
+    pub enabled: bool,
     pub snipe_protection_seconds: u64,
     pub max_price_impact_bps: u64,
+    pub max_slippage: u64,
+    pub blacklist_enabled: bool,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
@@ -57,27 +60,36 @@ pub struct FeeTier {
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct RateLimitSettings {
     pub window_seconds: u64,
-    pub count: u64,
-    pub max_calls: u64,
+    pub count: u32,
+    pub max_calls: u32,
     pub last_reset: u64,
+    pub window_size: u64,
+    pub max_per_window: u64,
+    pub current_window: u64,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct CircuitBreakerSettings {
+    pub enabled: bool,
     pub threshold: u64,
     pub window: u64,
     pub cooldown: u64,
     pub last_trigger: u64,
+    pub cooldown_period: u64,
+    pub max_amount: u64,
+    pub current_amount: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct VolumeSettings {
     pub volume_24h: u64,
-    pub last_update: i64,
-    pub last_decay: i64,
+    pub last_update: u64,
+    pub last_decay: u64,
     pub max_daily: u64,
     pub current_volume: u64,
-    pub last_reset: i64,
+    pub last_reset: u64,
+    pub decay_period: u64,
+    pub current_volume: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
