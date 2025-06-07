@@ -3,17 +3,17 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-hoe_dex_protection = "EPKa5m6izBgWC3eJBL7zYYybNDgdB29wzpyeeGZNM6cV"
+hoe_dex_protection = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+wallet = "~/.config/solana/dev-wallet.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 
 [toolchain]
-anchor_version = "0.31.0"
+anchor_version = "0.31.1"

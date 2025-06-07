@@ -1,1889 +1,1637 @@
 warning: /app/Cargo.toml: unused manifest key: toolchain
     Updating crates.io index
  Downloading crates ...
-  Downloaded anchor-derive-space v0.31.1
-  Downloaded anchor-attribute-constant v0.31.1
   Downloaded anchor-attribute-access-control v0.31.1
-  Downloaded anchor-derive-serde v0.31.1
-  Downloaded anchor-attribute-error v0.31.1
-  Downloaded darling_macro v0.20.11
+  Downloaded aes-gcm-siv v0.11.1
   Downloaded aead v0.5.2
-  Downloaded spl-discriminator-derive v0.2.0
-  Downloaded solana-transaction-error v2.1.0
-  Downloaded solana-stable-layout v2.1.0
-  Downloaded solana-slot-hashes v2.1.0
-  Downloaded ark-serialize-derive v0.4.2
-  Downloaded derivation-path v0.2.0
-  Downloaded solana-serde-varint v2.1.0
-  Downloaded solana-serialize-utils v2.1.0
-  Downloaded solana-program-option v2.1.0
-  Downloaded spl-program-error-derive v0.4.1
-  Downloaded spl-token-confidential-transfer-ciphertext-arithmetic v0.2.1
-  Downloaded solana-sha256-hasher v2.1.0
-  Downloaded ident_case v1.0.1
-  Downloaded ed25519-dalek-bip32 v0.2.0
-  Downloaded solana-sanitize v2.1.0
-  Downloaded solana-program-pack v2.1.0
+  Downloaded solana-security-txt v1.1.1
+  Downloaded spl-associated-token-account v6.0.0
   Downloaded spl-associated-token-account-client v2.0.0
-  Downloaded solana-precompile-error v2.1.0
-  Downloaded solana-native-token v2.1.0
-  Downloaded crypto-mac v0.8.0
+  Downloaded spl-discriminator v0.4.1
+  Downloaded spl-discriminator-derive v0.2.0
+  Downloaded spl-discriminator-syn v0.2.0
+  Downloaded solana-program-entrypoint v2.1.0
+  Downloaded solana-pubkey v2.1.0
+  Downloaded spl-elgamal-registry v0.1.1
+  Downloaded aes v0.8.4
+  Downloaded solana-rent v2.1.0
+  Downloaded spl-memo v6.0.0
+  Downloaded anchor-attribute-constant v0.31.1
+  Downloaded anchor-attribute-account v0.31.1
+  Downloaded spl-program-error v0.6.0
+  Downloaded solana-sdk-macro v2.1.0
+  Downloaded anchor-attribute-program v0.31.1
+  Downloaded spl-program-error-derive v0.4.1
+  Downloaded anchor-derive-accounts v0.31.1
+  Downloaded anchor-derive-space v0.31.1
   Downloaded anchor-attribute-event v0.31.1
+  Downloaded anchor-lang v0.31.1
+  Downloaded anchor-spl v0.31.1
+  Downloaded ark-bn254 v0.4.0
+  Downloaded solana-sdk v2.1.0
+  Downloaded solana-sanitize v2.1.0
+  Downloaded spl-tlv-account-resolution v0.9.0
+  Downloaded spl-token v7.0.0
+  Downloaded ark-ec v0.4.2
+  Downloaded anchor-syn v0.31.1
+  Downloaded spl-token-2022 v6.0.0
+  Downloaded spl-transfer-hook-interface v0.9.0
+  Downloaded strsim v0.11.1
+  Downloaded spl-token-metadata-interface v0.6.0
+  Downloaded spl-token-group-interface v0.5.0
+  Downloaded spl-token-confidential-transfer-proof-generation v0.2.0
+  Downloaded spl-token-confidential-transfer-proof-extraction v0.2.1
+  Downloaded spl-token-confidential-transfer-ciphertext-arithmetic v0.2.1
+  Downloaded solana-secp256k1-recover v2.1.0
+  Downloaded spl-type-length-value v0.7.0
+  Downloaded ark-std v0.4.0
+  Downloaded ark-serialize-derive v0.4.2
+  Downloaded ark-serialize v0.4.2
+  Downloaded ark-poly v0.4.2
+  Downloaded ark-ff-macros v0.4.2
+  Downloaded ark-ff-asm v0.4.2
+  Downloaded ark-ff v0.4.2
+  Downloaded blake3 v1.8.2
+  Downloaded syn v2.0.101
+  Downloaded ctr v0.9.2
+  Downloaded crypto-mac v0.8.0
+  Downloaded cipher v0.4.4
+  Downloaded cfg_eval v0.1.2
+  Downloaded cc v1.2.25
+  Downloaded universal-hash v0.5.1
+  Downloaded toml_datetime v0.6.9
+  Downloaded toml_edit v0.22.26
+  Downloaded uriparse v0.6.4
+  Downloaded fnv v1.0.7
+  Downloaded ahash v0.8.12
+  Downloaded bitflags v2.9.1
+  Downloaded byteorder v1.5.0
+  Downloaded anyhow v1.0.98
+  Downloaded iana-time-zone v0.1.63
+  Downloaded getrandom v0.3.3
+  Downloaded either v1.15.0
+  Downloaded zerocopy v0.8.25
+  Downloaded winnow v0.7.10
+  Downloaded solana-stable-layout v2.1.0
+  Downloaded solana-slot-history v2.1.0
+  Downloaded solana-slot-hashes v2.1.0
+  Downloaded solana-signature v2.1.0
+  Downloaded solana-serialize-utils v2.1.0
+  Downloaded solana-serde-varint v2.1.0
+  Downloaded hmac v0.12.1
+  Downloaded bytemuck v1.23.0
+  Downloaded solana-program-error v2.1.0
+  Downloaded zeroize_derive v1.4.2
+  Downloaded spl-pod v0.5.0
+  Downloaded solana-transaction-error v2.1.0
+  Downloaded solana-short-vec v2.1.0
+  Downloaded solana-sha256-hasher v2.1.0
+  Downloaded chrono v0.4.41
+  Downloaded getrandom v0.2.16
+  Downloaded paste v1.0.15
+  Downloaded itertools v0.12.1
+  Downloaded proc-macro2 v1.0.95
+  Downloaded itertools v0.10.5
+  Downloaded darling_macro v0.20.11
+  Downloaded darling_core v0.20.11
+  Downloaded darling v0.20.11
+  Downloaded memmap2 v0.5.10
+  Downloaded jobserver v0.1.33
+  Downloaded inout v0.1.4
+  Downloaded indexmap v2.9.0
+  Downloaded ident_case v1.0.1
+  Downloaded hmac-drbg v0.3.0
+  Downloaded hmac v0.8.1
+  Downloaded hashbrown v0.15.3
+  Downloaded ed25519-dalek-bip32 v0.2.0
+  Downloaded ed25519-dalek v1.0.1
+  Downloaded ed25519 v1.5.3
+  Downloaded derivative v2.2.0
+  Downloaded derivation-path v0.2.0
+  Downloaded anchor-attribute-error v0.31.1
+  Downloaded solana-zk-sdk v2.1.0
+  Downloaded solana-program-pack v2.1.0
+  Downloaded solana-program-option v2.1.0
+  Downloaded solana-program-memory v2.1.0
+  Downloaded solana-program v2.1.0
+  Downloaded solana-precompile-error v2.1.0
+  Downloaded solana-packet v2.1.0
+  Downloaded solana-native-token v2.1.0
+  Downloaded solana-msg v2.1.0
+  Downloaded solana-last-restart-slot v2.1.0
+  Downloaded solana-instruction v2.1.0
   Downloaded solana-inflation v2.1.0
   Downloaded solana-hash v2.1.0
   Downloaded solana-fee-calculator v2.1.0
+  Downloaded solana-feature-set v2.1.0
   Downloaded solana-epoch-schedule v2.1.0
   Downloaded solana-derivation-path v2.1.0
   Downloaded solana-define-syscall v2.1.0
   Downloaded solana-decode-error v2.1.0
-  Downloaded solana-program-error v2.1.0
   Downloaded solana-curve25519 v2.1.0
   Downloaded solana-cpi v2.1.0
   Downloaded solana-clock v2.1.0
   Downloaded solana-borsh v2.1.0
+  Downloaded solana-bn254 v2.1.0
+  Downloaded solana-bincode v2.1.0
   Downloaded solana-atomic-u64 v2.1.0
   Downloaded solana-account-info v2.1.0
   Downloaded solana-account v2.1.0
+  Downloaded siphasher v0.3.11
+  Downloaded signature v1.6.4
+  Downloaded sha2 v0.10.9
+  Downloaded serde_with_macros v3.12.0
+  Downloaded serde_with v3.12.0
   Downloaded qstring v0.7.2
-  Downloaded solana-packet v2.1.0
-  Downloaded solana-msg v2.1.0
-  Downloaded solana-last-restart-slot v2.1.0
-  Downloaded hmac-drbg v0.3.0
-  Downloaded ark-ff-asm v0.4.2
-  Downloaded spl-discriminator v0.4.1
-  Downloaded ark-ff-macros v0.4.2
-  Downloaded anchor-attribute-program v0.31.1
-  Downloaded solana-program-memory v2.1.0
-  Downloaded solana-rent v2.1.0
-  Downloaded anchor-attribute-account v0.31.1
-  Downloaded solana-security-txt v1.1.1
-  Downloaded ed25519 v1.5.3
-  Downloaded solana-program-entrypoint v2.1.0
-  Downloaded spl-program-error v0.6.0
-  Downloaded spl-elgamal-registry v0.1.1
-  Downloaded solana-short-vec v2.1.0
-  Downloaded solana-sdk-macro v2.1.0
-  Downloaded solana-slot-history v2.1.0
-  Downloaded cfg_eval v0.1.2
-  Downloaded paste v1.0.15
-  Downloaded solana-bincode v2.1.0
-  Downloaded spl-discriminator-syn v0.2.0
+  Downloaded polyval v0.6.2
+  Downloaded percent-encoding v2.3.1
+  Downloaded pbkdf2 v0.11.0
   Downloaded num_enum_derive v0.7.3
   Downloaded num_enum v0.7.3
   Downloaded merlin v3.0.0
-  Downloaded solana-instruction v2.1.0
-  Downloaded inout v0.1.4
-  Downloaded hmac v0.8.1
-  Downloaded fnv v1.0.7
-  Downloaded either v1.15.0
-  Downloaded ctr v0.9.2
-  Downloaded cipher v0.4.4
-  Downloaded ark-std v0.4.0
-  Downloaded pbkdf2 v0.11.0
-  Downloaded siphasher v0.3.11
-  Downloaded signature v1.6.4
-  Downloaded percent-encoding v2.3.1
-  Downloaded spl-memo v6.0.0
-  Downloaded solana-feature-set v2.1.0
-  Downloaded solana-bn254 v2.1.0
-  Downloaded polyval v0.6.2
-  Downloaded ark-serialize v0.4.2
-  Downloaded solana-pubkey v2.1.0
-  Downloaded ark-bn254 v0.4.0
-  Downloaded anchor-derive-accounts v0.31.1
-  Downloaded anchor-spl v0.31.1
-  Downloaded solana-signature v2.1.0
-  Downloaded iana-time-zone v0.1.63
-  Downloaded spl-token-group-interface v0.5.0
-  Downloaded darling v0.20.11
-  Downloaded jobserver v0.1.33
-  Downloaded spl-associated-token-account v6.0.0
-  Downloaded getrandom v0.2.16
-  Downloaded byteorder v1.5.0
-  Downloaded ed25519-dalek v1.0.1
-  Downloaded memmap2 v0.5.10
-  Downloaded serde_with_macros v3.12.0
-  Downloaded spl-token-confidential-transfer-proof-generation v0.2.0
-  Downloaded sha2 v0.10.9
-  Downloaded aes-gcm-siv v0.11.1
-  Downloaded spl-token-confidential-transfer-proof-extraction v0.2.1
-  Downloaded ark-poly v0.4.2
-  Downloaded anchor-lang v0.31.1
-  Downloaded ahash v0.8.12
-  Downloaded bytemuck v1.23.0
-  Downloaded hmac v0.12.1
-  Downloaded getrandom v0.3.3
-  Downloaded derivative v2.2.0
-  Downloaded bitflags v2.9.1
-  Downloaded universal-hash v0.5.1
-  Downloaded spl-transfer-hook-interface v0.9.0
-  Downloaded ark-ec v0.4.2
-  Downloaded spl-pod v0.5.0
-  Downloaded anyhow v1.0.98
-  Downloaded anchor-syn v0.31.1
-  Downloaded solana-secp256k1-recover v2.1.0
-  Downloaded proc-macro2 v1.0.95
-  Downloaded ark-ff v0.4.2
-  Downloaded strsim v0.11.1
-  Downloaded spl-token-metadata-interface v0.6.0
-  Downloaded darling_core v0.20.11
-  Downloaded spl-type-length-value v0.7.0
-  Downloaded toml_datetime v0.6.9
-  Downloaded zeroize_derive v1.4.2
-  Downloaded indexmap v2.9.0
-  Downloaded cc v1.2.25
-  Downloaded itertools v0.10.5
-  Downloaded solana-program v2.1.0
-  Downloaded hashbrown v0.15.3
-  Downloaded aes v0.8.4
-  Downloaded itertools v0.12.1
-  Downloaded serde_with v3.12.0
-  Downloaded blake3 v1.8.2
-  Downloaded chrono v0.4.41
-  Downloaded spl-tlv-account-resolution v0.9.0
   Downloaded curve25519-dalek v3.2.0
+  Downloaded anchor-derive-serde v0.31.1
   Downloaded libc v0.2.172
-  Downloaded spl-token v7.0.0
-  Downloaded uriparse v0.6.4
-  Downloaded solana-sdk v2.1.0
-  Downloaded toml_edit v0.22.26
-  Downloaded spl-token-2022 v6.0.0
-  Downloaded winnow v0.7.10
-  Downloaded zerocopy v0.8.25
-  Downloaded syn v2.0.101
-  Downloaded solana-zk-sdk v2.1.0
    Compiling hoe-dex-protection v0.1.0 (/app/programs/hoe-dex-protection)
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1003:31
-     |
-1003 |     pub fn initialize_default(&mut self) -> Result<()> {
-     |                               ^^^^^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
+error: unexpected token
+   --> programs/hoe-dex-protection/src/lib.rs:254:46
+    |
+254 |             error!(ErrorCode::NoPendingUpdate, "No pending update available");
+    |                                              ^
 
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1013:35
-     |
-1013 |     pub fn toggle_emergency_pause(&mut self, current_time: u64) -> Result<()> {
-     |                                   ^^^^^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
+error[E0432]: unresolved import `crate::context`
+ --> programs/hoe-dex-protection/src/lib.rs:4:12
+  |
+4 | use crate::context::*;
+  |            ^^^^^^^
+  |            |
+  |            unresolved import
+  |            help: a similar path exists: `anchor_lang::context`
 
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1034:25
-     |
-1034 |     pub fn decay_volume(&mut self, current_time: u64) -> Result<()> {
-     |                         ^^^^^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
+error[E0432]: unresolved import `crate::errors`
+ --> programs/hoe-dex-protection/src/lib.rs:5:12
+  |
+5 | use crate::errors::ErrorCode;
+  |            ^^^^^^ could not find `errors` in the crate root
 
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1051:26
-     |
-1051 |     pub fn update_volume(&mut self, amount: u64, current_time: u64) -> Result<()> {
-     |                          ^^^^^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
+error[E0432]: unresolved import `crate::types`
+ --> programs/hoe-dex-protection/src/lib.rs:6:12
+  |
+6 | use crate::types::*;
+  |            ^^^^^ could not find `types` in the crate root
 
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1057:31
-     |
-1057 |     pub fn check_volume_limit(&self, current_time: u64) -> Result<()> {
-     |                               ^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
+error[E0432]: unresolved import `crate::validation`
+ --> programs/hoe-dex-protection/src/lib.rs:7:12
+  |
+7 | use crate::validation::*;
+  |            ^^^^^^^^^^ could not find `validation` in the crate root
 
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1074:29
-     |
-1074 |     pub fn check_rate_limit(&self, amount: u64, current_time: u64) -> Result<()> {
-     |                             ^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
-
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1091:30
-     |
-1091 |     pub fn update_rate_limit(&mut self, amount: u64, current_time: u64) -> Result<()> {
-     |                              ^^^^^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
-
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1110:34
-     |
-1110 |     pub fn check_circuit_breaker(&self, amount: u64, current_time: u64) -> Result<()> {
-     |                                  ^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
-
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1127:35
-     |
-1127 |     pub fn update_circuit_breaker(&mut self, amount: u64, current_time: u64) -> Result<()> {
-     |                                   ^^^^^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
-
-error: `self` parameter is only allowed in associated functions
-    --> programs/hoe-dex-protection/src/lib.rs:1145:23
-     |
-1145 |     pub fn initialize(&mut self, admin: &Pubkey, token_mint: &Pubkey, bump: u8) -> Result<()> {
-     |                       ^^^^^^^^^ not semantically valid as function parameter
-     |
-     = note: associated functions are those in `impl` or `trait` definitions
+error[E0432]: unresolved import `crate::utils`
+ --> programs/hoe-dex-protection/src/lib.rs:8:12
+  |
+8 | use crate::utils::*;
+  |            ^^^^^ could not find `utils` in the crate root
 
 error[E0432]: unresolved import `crate`
-  --> programs/hoe-dex-protection/src/lib.rs:16:1
+  --> programs/hoe-dex-protection/src/lib.rs:12:1
    |
-16 | #[program]
-   | ^^^^^^^^^^ could not find `__client_accounts_contexts` in the crate root
-   |
-   = note: this error originates in the attribute macro `program` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error: cannot find macro `validate_parameter` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:567:13
-    |
-567 |             validate_parameter!(
-    |             ^^^^^^^^^^^^^^^^^^
-
-error: cannot find macro `validate_parameter` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:558:13
-    |
-558 |             validate_parameter!(
-    |             ^^^^^^^^^^^^^^^^^^
-
-error[E0573]: expected type, found module `contexts`
-  --> programs/hoe-dex-protection/src/lib.rs:26:22
-   |
-26 |         ctx: Context<contexts::InitializePool>,
-   |                      ^^^^^^^^ help: a struct with a similar name exists: `Context`
-  --> src/context.rs:24:1
-   |
-   = note: similarly named struct `Context` defined here
-
-error[E0425]: cannot find function `try_accounts` in module `contexts`
-  --> programs/hoe-dex-protection/src/lib.rs:16:1
-   |
-16 | #[program]
-   | ^^^^^^^^^^ not found in `contexts`
+12 | #[program]
+   | ^^^^^^^^^^ could not find `__client_accounts_admin_action` in the crate root
    |
    = note: this error originates in the attribute macro `program` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:122:39
-    |
-122 |     pub fn add_liquidity(ctx: Context<contexts::AddLiquidity>, amount: u64) -> Result<()> {
-    |                                       ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+error[E0432]: unresolved imports `crate::context::*`, `crate::errors::ErrorCode`, `crate::types::*`, `crate::validation::*`, `crate::utils::*`
+ --> programs/hoe-dex-protection/src/lib.rs:4:5
+  |
+4 | use crate::context::*;
+  |     ^^^^^^^^^^^^^^^^^
+5 | use crate::errors::ErrorCode;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+6 | use crate::types::*;
+  |     ^^^^^^^^^^^^^^^
+7 | use crate::validation::*;
+  |     ^^^^^^^^^^^^^^^^^^^^
+8 | use crate::utils::*;
+  |     ^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:192:42
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:645:9
     |
-192 |     pub fn remove_liquidity(ctx: Context<contexts::AdminAction>, amount: u64) -> Result<()> {
-    |                                          ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+645 |         validate_condition!(mint_account.freeze_authority.is_none(), ErrorCode::TokenMintHasFreezeAuthority);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:245:22
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:644:9
     |
-245 |         ctx: Context<contexts::ExecuteTrade>,
-    |                      ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+644 |         validate_condition!(mint_account.decimals == self.token_decimals, ErrorCode::InvalidTokenDecimals);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:359:42
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:642:9
     |
-359 |     pub fn blacklist_trader(ctx: Context<contexts::ManageBlacklist>, trader: Pubkey) -> Result<()> {
-    |                                          ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+642 |         validate_condition!(mint.key() == self.token_mint, ErrorCode::InvalidTokenMint);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:379:47
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:410:9
     |
-379 |     pub fn remove_from_blacklist(ctx: Context<contexts::ManageBlacklist>, trader: Pubkey) -> Result<()> {
-    |                                               ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+410 |         validate_condition!(state.pending_update.is_some(), ErrorCode::NoPendingUpdate);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:401:49
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:355:9
     |
-401 |     pub fn batch_blacklist_traders(ctx: Context<contexts::ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
-    |                                                 ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+355 |         validate_condition!(state.is_emergency_paused, ErrorCode::PoolNotPaused);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:419:51
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:323:9
     |
-419 |     pub fn batch_unblacklist_traders(ctx: Context<contexts::ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
-    |                                                   ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+323 |         validate_condition!(!state.is_emergency_paused, ErrorCode::EmergencyPaused);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:437:39
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:224:9
     |
-437 |     pub fn withdraw_fees(ctx: Context<contexts::WithdrawFees>) -> Result<()> {
-    |                                       ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+224 |         validate_condition!(state.fee_tiers_locked, ErrorCode::FeeTiersNotLocked);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:484:40
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:214:9
     |
-484 |     pub fn lock_fee_tiers(ctx: Context<contexts::LockFeeTiers>) -> Result<()> {
-    |                                        ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+214 |         validate_condition!(!state.fee_tiers_locked, ErrorCode::FeeTiersLocked);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:514:42
+error: cannot find macro `validate_condition` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:201:9
     |
-514 |     pub fn unlock_fee_tiers(ctx: Context<contexts::AdminAction>) -> Result<()> {
-    |                                          ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+201 |         validate_condition!(state.total_fees_collected > 0, ErrorCode::NoFeesAvailable);
+    |         ^^^^^^^^^^^^^^^^^^
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:544:22
-    |
-544 |         ctx: Context<contexts::AdminAction>,
-    |                      ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+error[E0412]: cannot find type `InitializePool` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:17:36
+   |
+17 |     pub fn initialize(ctx: Context<InitializePool>, admin: Pubkey, token_mint: Pubkey, bump: u8) -> Result<()> {
+   |                                    ^^^^^^^^^^^^^^ not found in this scope
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:604:49
-    |
-604 |     pub fn cancel_parameter_update(ctx: Context<contexts::AdminAction>) -> Result<()> {
-    |                                                 ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+error[E0412]: cannot find type `AddLiquidity` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:64:39
+   |
+64 |     pub fn add_liquidity(ctx: Context<AddLiquidity>, amount: u64) -> Result<()> {
+   |                                       ^^^^^^^^^^^^ not found in this scope
+   |
+   = help: consider importing this struct:
+           crate::instruction::AddLiquidity
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:636:48
-    |
-636 |     pub fn apply_parameter_update(ctx: Context<contexts::AdminAction>) -> Result<()> {
-    |                                                ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+error[E0433]: failed to resolve: use of undeclared type `AddLiquidity`
+  --> programs/hoe-dex-protection/src/lib.rs:64:39
+   |
+64 |     pub fn add_liquidity(ctx: Context<AddLiquidity>, amount: u64) -> Result<()> {
+   |                                       ^^^^^^^^^^^^ use of undeclared type `AddLiquidity`
+   |
+   = help: consider importing this struct:
+           crate::instruction::AddLiquidity
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:748:50
-    |
-748 |     pub fn schedule_emergency_pause(ctx: Context<contexts::EmergencyAction>) -> Result<()> {
-    |                                                  ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+error[E0412]: cannot find type `AdminAction` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:83:42
+   |
+83 |     pub fn remove_liquidity(ctx: Context<AdminAction>, amount: u64) -> Result<()> {
+   |                                          ^^^^^^^^^^^ not found in this scope
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:779:47
+error[E0412]: cannot find type `ExecuteTrade` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:107:22
     |
-779 |     pub fn apply_emergency_pause(ctx: Context<contexts::EmergencyAction>) -> Result<()> {
-    |                                               ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
+107 |         ctx: Context<ExecuteTrade>,
+    |                      ^^^^^^^^^^^^ not found in this scope
     |
-    = note: similarly named struct `Context` defined here
+    = help: consider importing this struct:
+            crate::instruction::ExecuteTrade
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:814:51
+error[E0433]: failed to resolve: use of undeclared type `ExecuteTrade`
+   --> programs/hoe-dex-protection/src/lib.rs:107:22
     |
-814 |     pub fn schedule_emergency_resume(ctx: Context<contexts::EmergencyAction>) -> Result<()> {
-    |                                                   ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
+107 |         ctx: Context<ExecuteTrade>,
+    |                      ^^^^^^^^^^^^ use of undeclared type `ExecuteTrade`
     |
-    = note: similarly named struct `Context` defined here
+    = help: consider importing this struct:
+            crate::instruction::ExecuteTrade
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:845:48
+error[E0412]: cannot find type `ManageBlacklist` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:151:42
     |
-845 |     pub fn apply_emergency_resume(ctx: Context<contexts::EmergencyAction>) -> Result<()> {
-    |                                                ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+151 |     pub fn blacklist_trader(ctx: Context<ManageBlacklist>, trader: Pubkey) -> Result<()> {
+    |                                          ^^^^^^^^^^^^^^^ not found in this scope
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:880:47
+error[E0412]: cannot find type `ManageBlacklist` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:163:47
     |
-880 |     pub fn reset_circuit_breaker(ctx: Context<contexts::AdminAction>) -> Result<()> {
-    |                                               ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+163 |     pub fn remove_from_blacklist(ctx: Context<ManageBlacklist>, trader: Pubkey) -> Result<()> {
+    |                                               ^^^^^^^^^^^^^^^ not found in this scope
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:913:38
+error[E0412]: cannot find type `ManageBlacklist` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:175:49
     |
-913 |     pub fn update_admin(ctx: Context<contexts::AdminAction>, new_admin: Pubkey) -> Result<()> {
-    |                                      ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+175 |     pub fn batch_blacklist_traders(ctx: Context<ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
+    |                                                 ^^^^^^^^^^^^^^^ not found in this scope
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:944:46
+error[E0412]: cannot find type `ManageBlacklist` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:186:51
     |
-944 |     pub fn reset_pending_update(ctx: Context<contexts::AdminAction>) -> Result<()> {
-    |                                              ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
-    |
-    = note: similarly named struct `Context` defined here
+186 |     pub fn batch_unblacklist_traders(ctx: Context<ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
+    |                                                   ^^^^^^^^^^^^^^^ not found in this scope
 
-error[E0573]: expected type, found module `contexts`
-   --> programs/hoe-dex-protection/src/lib.rs:974:38
+error[E0412]: cannot find type `WithdrawFees` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:197:39
     |
-974 |     pub fn toggle_pause(ctx: Context<contexts::AdminAction>) -> Result<()> {
-    |                                      ^^^^^^^^ help: a struct with a similar name exists: `Context`
-   --> src/context.rs:24:1
+197 |     pub fn withdraw_fees(ctx: Context<WithdrawFees>) -> Result<()> {
+    |                                       ^^^^^^^^^^^^ not found in this scope
     |
-    = note: similarly named struct `Context` defined here
+    = help: consider importing this struct:
+            crate::instruction::WithdrawFees
+
+error[E0433]: failed to resolve: use of undeclared type `WithdrawFees`
+   --> programs/hoe-dex-protection/src/lib.rs:197:39
+    |
+197 |     pub fn withdraw_fees(ctx: Context<WithdrawFees>) -> Result<()> {
+    |                                       ^^^^^^^^^^^^ use of undeclared type `WithdrawFees`
+    |
+    = help: consider importing this struct:
+            crate::instruction::WithdrawFees
+
+error[E0412]: cannot find type `LockFeeTiers` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:210:40
+    |
+210 |     pub fn lock_fee_tiers(ctx: Context<LockFeeTiers>) -> Result<()> {
+    |                                        ^^^^^^^^^^^^ not found in this scope
+    |
+    = help: consider importing this struct:
+            crate::instruction::LockFeeTiers
+
+error[E0433]: failed to resolve: use of undeclared type `LockFeeTiers`
+   --> programs/hoe-dex-protection/src/lib.rs:210:40
+    |
+210 |     pub fn lock_fee_tiers(ctx: Context<LockFeeTiers>) -> Result<()> {
+    |                                        ^^^^^^^^^^^^ use of undeclared type `LockFeeTiers`
+    |
+    = help: consider importing this struct:
+            crate::instruction::LockFeeTiers
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:220:42
+    |
+220 |     pub fn unlock_fee_tiers(ctx: Context<AdminAction>) -> Result<()> {
+    |                                          ^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:231:22
+    |
+231 |         ctx: Context<AdminAction>,
+    |                      ^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:249:49
+    |
+249 |     pub fn cancel_parameter_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                                 ^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:265:48
+    |
+265 |     pub fn apply_parameter_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                                ^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `EmergencyAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:317:50
+    |
+317 |     pub fn schedule_emergency_pause(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                  ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `EmergencyAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:334:47
+    |
+334 |     pub fn apply_emergency_pause(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                               ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `EmergencyAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:349:51
+    |
+349 |     pub fn schedule_emergency_resume(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                   ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `EmergencyAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:366:48
+    |
+366 |     pub fn apply_emergency_resume(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:381:47
+    |
+381 |     pub fn reset_circuit_breaker(ctx: Context<AdminAction>) -> Result<()> {
+    |                                               ^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:393:38
+    |
+393 |     pub fn update_admin(ctx: Context<AdminAction>, new_admin: Pubkey) -> Result<()> {
+    |                                      ^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:406:46
+    |
+406 |     pub fn reset_pending_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                              ^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:420:38
+    |
+420 |     pub fn toggle_pause(ctx: Context<AdminAction>) -> Result<()> {
+    |                                      ^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `InitializePool` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:17:36
+   |
+17 |     pub fn initialize(ctx: Context<InitializePool>, admin: Pubkey, token_mint: Pubkey, bump: u8) -> Result<()> {
+   |                                    ^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+17 |     pub fn initialize<InitializePool>(ctx: Context<InitializePool>, admin: Pubkey, token_mint: Pubkey, bump: u8) -> Result<()> {
+   |                      ++++++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `RateLimitSettings` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:29:33
+   |
+29 |         pool_state.rate_limit = RateLimitSettings {
+   |                                 ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `CircuitBreakerSettings` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:35:38
+   |
+35 |         pool_state.circuit_breaker = CircuitBreakerSettings {
+   |                                      ^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `VolumeSettings` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:40:29
+   |
+40 |         pool_state.volume = VolumeSettings {
+   |                             ^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ProtectionSettings` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:48:33
+   |
+48 |         pool_state.protection = ProtectionSettings {
+   |                                 ^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `FeeTier` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:56:37
+   |
+56 |         pool_state.fee_tiers = vec![FeeTier {
+   |                                     ^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AddLiquidity` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:64:39
+   |
+64 |     pub fn add_liquidity(ctx: Context<AddLiquidity>, amount: u64) -> Result<()> {
+   |                                       ^^^^^^^^^^^^ not found in this scope
+   |
+help: consider importing this struct
+   |
+14 +     use crate::instruction::AddLiquidity;
+   |
 
 error[E0422]: cannot find struct, variant or union type `TokenTransfer` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:156:17
+  --> programs/hoe-dex-protection/src/lib.rs:71:36
+   |
+71 |         let transfer_instruction = TokenTransfer {
+   |                                    ^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:83:42
+   |
+83 |     pub fn remove_liquidity(ctx: Context<AdminAction>, amount: u64) -> Result<()> {
+   |                                          ^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+83 |     pub fn remove_liquidity<AdminAction>(ctx: Context<AdminAction>, amount: u64) -> Result<()> {
+   |                            +++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `TokenTransfer` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:93:36
+   |
+93 |         let transfer_instruction = TokenTransfer {
+   |                                    ^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `ExecuteTrade` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:107:22
     |
-156 |                 TokenTransfer {
-    |                 ^^^^^^^^^^^^^ not found in this scope
+107 |         ctx: Context<ExecuteTrade>,
+    |                      ^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+14  +     use crate::instruction::ExecuteTrade;
+    |
 
 error[E0412]: cannot find type `TradeOutcome` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:248:17
+   --> programs/hoe-dex-protection/src/lib.rs:112:17
     |
-248 |     ) -> Result<TradeOutcome> {
+112 |     ) -> Result<TradeOutcome> {
     |                 ^^^^^^^^^^^^ not found in this scope
     |
 help: you might be missing a type parameter
     |
-244 |     pub fn execute_trade<TradeOutcome>(
-    |                         ++++++++++++++
+106 |     pub fn execute_trade<'info, TradeOutcome>(
+    |                               ++++++++++++++
 
 error[E0422]: cannot find struct, variant or union type `TokenTransfer` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:302:17
+   --> programs/hoe-dex-protection/src/lib.rs:127:27
     |
-302 |                 TokenTransfer {
-    |                 ^^^^^^^^^^^^^ not found in this scope
+127 |         let transfer_in = TokenTransfer {
+    |                           ^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `TokenTransfer` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:133:28
+    |
+133 |         let transfer_out = TokenTransfer {
+    |                            ^^^^^^^^^^^^^ not found in this scope
 
 error[E0422]: cannot find struct, variant or union type `TradeOutcome` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:339:12
+   --> programs/hoe-dex-protection/src/lib.rs:143:12
     |
-339 |         Ok(TradeOutcome {
+143 |         Ok(TradeOutcome {
     |            ^^^^^^^^^^^^ not found in this scope
 
-error[E0422]: cannot find struct, variant or union type `TradeSettingsUpdated` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:663:19
+error[E0412]: cannot find type `ManageBlacklist` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:151:42
     |
-663 |             emit!(TradeSettingsUpdated {
-    |                   ^^^^^^^^^^^^^^^^^^^^ help: a struct with a similar name exists: `TradeSettingsUpdate`
+151 |     pub fn blacklist_trader(ctx: Context<ManageBlacklist>, trader: Pubkey) -> Result<()> {
+    |                                          ^^^^^^^^^^^^^^^ not found in this scope
     |
-   ::: programs/hoe-dex-protection/src/types.rs:23:1
+help: you might be missing a type parameter
     |
-23  | pub struct TradeSettingsUpdate {
-    | ------------------------------ similarly named struct `TradeSettingsUpdate` defined here
+151 |     pub fn blacklist_trader<ManageBlacklist>(ctx: Context<ManageBlacklist>, trader: Pubkey) -> Result<()> {
+    |                            +++++++++++++++++
 
-error[E0422]: cannot find struct, variant or union type `ProtectionSettingsUpdated` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:686:19
+error[E0412]: cannot find type `ManageBlacklist` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:163:47
     |
-686 |             emit!(ProtectionSettingsUpdated {
-    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^ help: a struct with a similar name exists: `ProtectionSettingsUpdate`
+163 |     pub fn remove_from_blacklist(ctx: Context<ManageBlacklist>, trader: Pubkey) -> Result<()> {
+    |                                               ^^^^^^^^^^^^^^^ not found in this scope
     |
-   ::: programs/hoe-dex-protection/src/types.rs:32:1
+help: you might be missing a type parameter
     |
-32  | pub struct ProtectionSettingsUpdate {
-    | ----------------------------------- similarly named struct `ProtectionSettingsUpdate` defined here
+163 |     pub fn remove_from_blacklist<ManageBlacklist>(ctx: Context<ManageBlacklist>, trader: Pubkey) -> Result<()> {
+    |                                 +++++++++++++++++
 
-error[E0422]: cannot find struct, variant or union type `FeeSettingsUpdated` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:708:19
+error[E0412]: cannot find type `ManageBlacklist` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:175:49
     |
-708 |             emit!(FeeSettingsUpdated {
-    |                   ^^^^^^^^^^^^^^^^^^ help: a struct with a similar name exists: `FeeSettingsUpdate`
+175 |     pub fn batch_blacklist_traders(ctx: Context<ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
+    |                                                 ^^^^^^^^^^^^^^^ not found in this scope
     |
-   ::: programs/hoe-dex-protection/src/types.rs:43:1
+help: you might be missing a type parameter
     |
-43  | pub struct FeeSettingsUpdate {
-    | ---------------------------- similarly named struct `FeeSettingsUpdate` defined here
+175 |     pub fn batch_blacklist_traders<ManageBlacklist>(ctx: Context<ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
+    |                                   +++++++++++++++++
 
-error[E0422]: cannot find struct, variant or union type `StateSettingsUpdated` in this scope
-   --> programs/hoe-dex-protection/src/lib.rs:721:19
+error[E0412]: cannot find type `ManageBlacklist` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:186:51
     |
-721 |             emit!(StateSettingsUpdated {
-    |                   ^^^^^^^^^^^^^^^^^^^^ help: a struct with a similar name exists: `StateSettingsUpdate`
+186 |     pub fn batch_unblacklist_traders(ctx: Context<ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
+    |                                                   ^^^^^^^^^^^^^^^ not found in this scope
     |
-   ::: programs/hoe-dex-protection/src/types.rs:49:1
+help: you might be missing a type parameter
     |
-49  | pub struct StateSettingsUpdate {
-    | ------------------------------ similarly named struct `StateSettingsUpdate` defined here
+186 |     pub fn batch_unblacklist_traders<ManageBlacklist>(ctx: Context<ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
+    |                                     +++++++++++++++++
+
+error[E0412]: cannot find type `WithdrawFees` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:197:39
+    |
+197 |     pub fn withdraw_fees(ctx: Context<WithdrawFees>) -> Result<()> {
+    |                                       ^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+14  +     use crate::instruction::WithdrawFees;
+    |
+
+error[E0412]: cannot find type `LockFeeTiers` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:210:40
+    |
+210 |     pub fn lock_fee_tiers(ctx: Context<LockFeeTiers>) -> Result<()> {
+    |                                        ^^^^^^^^^^^^ not found in this scope
+    |
+help: consider importing this struct
+    |
+14  +     use crate::instruction::LockFeeTiers;
+    |
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:220:42
+    |
+220 |     pub fn unlock_fee_tiers(ctx: Context<AdminAction>) -> Result<()> {
+    |                                          ^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+220 |     pub fn unlock_fee_tiers<AdminAction>(ctx: Context<AdminAction>) -> Result<()> {
+    |                            +++++++++++++
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:231:22
+    |
+231 |         ctx: Context<AdminAction>,
+    |                      ^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+230 |     pub fn schedule_parameter_update<AdminAction>(
+    |                                     +++++++++++++
+
+error[E0412]: cannot find type `ParameterUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:232:19
+    |
+232 |         settings: ParameterUpdate,
+    |                   ^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ParameterUpdateScheduled` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:241:37
+    |
+241 |         state.pending_update = Some(ParameterUpdateScheduled {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:249:49
+    |
+249 |     pub fn cancel_parameter_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                                 ^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+249 |     pub fn cancel_parameter_update<AdminAction>(ctx: Context<AdminAction>) -> Result<()> {
+    |                                   +++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `ParameterUpdateCancelled` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:257:15
+    |
+257 |         emit!(ParameterUpdateCancelled {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:265:48
+    |
+265 |     pub fn apply_parameter_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                                ^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+265 |     pub fn apply_parameter_update<AdminAction>(ctx: Context<AdminAction>) -> Result<()> {
+    |                                  +++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `TradeSettingsUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:276:23
+    |
+276 |                 emit!(TradeSettingsUpdate {
+    |                       ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ProtectionSettingsUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:289:23
+    |
+289 |                 emit!(ProtectionSettingsUpdate {
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `FeeSettingsUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:302:23
+    |
+302 |                 emit!(FeeSettingsUpdate {
+    |                       ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `StateSettingsUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:308:23
+    |
+308 |                 emit!(StateSettingsUpdate {
+    |                       ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `EmergencyAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:317:50
+    |
+317 |     pub fn schedule_emergency_pause(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                  ^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+317 |     pub fn schedule_emergency_pause<EmergencyAction>(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                    +++++++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `ParameterUpdateScheduled` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:324:37
+    |
+324 |         state.pending_update = Some(ParameterUpdateScheduled {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `StateSettingsUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:325:44
+    |
+325 |             update: ParameterUpdate::State(StateSettingsUpdate {
+    |                                            ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `EmergencyAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:334:47
+    |
+334 |     pub fn apply_emergency_pause(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                               ^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+334 |     pub fn apply_emergency_pause<EmergencyAction>(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                 +++++++++++++++++
+
+error[E0412]: cannot find type `EmergencyAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:349:51
+    |
+349 |     pub fn schedule_emergency_resume(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                   ^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+349 |     pub fn schedule_emergency_resume<EmergencyAction>(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                     +++++++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `ParameterUpdateScheduled` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:356:37
+    |
+356 |         state.pending_update = Some(ParameterUpdateScheduled {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `StateSettingsUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:357:44
+    |
+357 |             update: ParameterUpdate::State(StateSettingsUpdate {
+    |                                            ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `EmergencyAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:366:48
+    |
+366 |     pub fn apply_emergency_resume(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                ^^^^^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+366 |     pub fn apply_emergency_resume<EmergencyAction>(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                  +++++++++++++++++
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:381:47
+    |
+381 |     pub fn reset_circuit_breaker(ctx: Context<AdminAction>) -> Result<()> {
+    |                                               ^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+381 |     pub fn reset_circuit_breaker<AdminAction>(ctx: Context<AdminAction>) -> Result<()> {
+    |                                 +++++++++++++
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:393:38
+    |
+393 |     pub fn update_admin(ctx: Context<AdminAction>, new_admin: Pubkey) -> Result<()> {
+    |                                      ^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+393 |     pub fn update_admin<AdminAction>(ctx: Context<AdminAction>, new_admin: Pubkey) -> Result<()> {
+    |                        +++++++++++++
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:406:46
+    |
+406 |     pub fn reset_pending_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                              ^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+406 |     pub fn reset_pending_update<AdminAction>(ctx: Context<AdminAction>) -> Result<()> {
+    |                                +++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `ParameterUpdateCancelled` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:412:15
+    |
+412 |         emit!(ParameterUpdateCancelled {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `AdminAction` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:420:38
+    |
+420 |     pub fn toggle_pause(ctx: Context<AdminAction>) -> Result<()> {
+    |                                      ^^^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+420 |     pub fn toggle_pause<AdminAction>(ctx: Context<AdminAction>) -> Result<()> {
+    |                        +++++++++++++
+
+error[E0422]: cannot find struct, variant or union type `StateSettingsUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:425:15
+    |
+425 |         emit!(StateSettingsUpdate {
+    |               ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `ParameterUpdate` in this scope
+  --> programs/hoe-dex-protection/src/lib.rs:12:1
+   |
+12 | #[program]
+   | ^^^^^^^^^^ not found in this scope
+   |
+   = note: this error originates in the attribute macro `program` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0412]: cannot find type `PoolState` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:432:6
+    |
+432 | impl PoolState {
+    |      ^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `RateLimitSettings` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:435:27
+    |
+435 |         self.rate_limit = RateLimitSettings {
+    |                           ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `CircuitBreakerSettings` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:441:32
+    |
+441 |         self.circuit_breaker = CircuitBreakerSettings {
+    |                                ^^^^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `VolumeSettings` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:446:23
+    |
+446 |         self.volume = VolumeSettings {
+    |                       ^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `ProtectionSettings` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:454:27
+    |
+454 |         self.protection = ProtectionSettings {
+    |                           ^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `FeeTier` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:462:31
+    |
+462 |         self.fee_tiers = vec![FeeTier {
+    |                               ^^^^^^^ not found in this scope
+
+error[E0422]: cannot find struct, variant or union type `StateSettingsUpdate` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:475:15
+    |
+475 |         emit!(StateSettingsUpdate {
+    |               ^^^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `PoolState` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:579:39
+    |
+579 |     pub fn calculate_fee(pool_state: &PoolState, amount_in: u64, current_time: i64) -> Result<(u64, u8)> {
+    |                                       ^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `FeeTier` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:595:56
+    |
+595 |     pub fn validate_fee_parameters(&self, fee_tiers: &[FeeTier]) -> Result<()> {
+    |                                                        ^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Mint` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:643:35
+    |
+643 |         let mint_account: Account<Mint> = Account::try_from(mint)?;
+    |                                   ^^^^ not found in this scope
+    |
+help: consider importing one of these items
+    |
+1   + use anchor_spl::token::Mint;
+    |
+1   + use anchor_spl::token_interface::Mint;
+    |
+1   + use crate::token::Mint;
+    |
+1   + use spl_token::state::Mint;
+    |
+
+error[E0412]: cannot find type `PoolState` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:669:43
+    |
+669 |     pool_state: &'info mut Account<'info, PoolState>,
+    |                                           ^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+668 | pub struct ReentrancyGuard<'info, PoolState> {
+    |                                 +++++++++++
+
+error[E0412]: cannot find type `PoolState` in this scope
+   --> programs/hoe-dex-protection/src/lib.rs:673:54
+    |
+673 |     pub fn new(pool_state: &'info mut Account<'info, PoolState>) -> Result<Self> {
+    |                                                      ^^^^^^^^^ not found in this scope
+    |
+help: you might be missing a type parameter
+    |
+672 | impl<'info, PoolState> ReentrancyGuard<'info> {
+    |           +++++++++++
+
+warning: unused import: `Transfer`
+ --> programs/hoe-dex-protection/src/lib.rs:2:45
+  |
+2 | use anchor_spl::token::{self, TokenAccount, Transfer};
+  |                                             ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
 
 warning: unused import: `std::collections::HashSet`
  --> programs/hoe-dex-protection/src/lib.rs:3:5
   |
 3 | use std::collections::HashSet;
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
 
-error[E0124]: field `current_volume` is already declared
-  --> programs/hoe-dex-protection/src/types.rs:92:5
+error[E0433]: failed to resolve: use of undeclared type `InitializePool`
+  --> programs/hoe-dex-protection/src/lib.rs:17:36
    |
-89 |     pub current_volume: u64,
-   |     ----------------------- `current_volume` first declared here
-...
-92 |     pub current_volume: u64,
-   |     ^^^^^^^^^^^^^^^^^^^^^^^ field already declared
+17 |     pub fn initialize(ctx: Context<InitializePool>, admin: Pubkey, token_mint: Pubkey, bump: u8) -> Result<()> {
+   |                                    ^^^^^^^^^^^^^^ use of undeclared type `InitializePool`
 
-error[E0592]: duplicate definitions with name `check_rate_limit`
-    --> programs/hoe-dex-protection/src/lib.rs:1892:5
-     |
-1474 |     pub fn check_rate_limit(&self, amount: u64, current_time: u64) -> Result<()> {
-     |     ---------------------------------------------------------------------------- other definition for `check_rate_limit`
-...
-1892 |     pub fn check_rate_limit(&mut self, current_time: u64) -> Result<()> {
-     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ duplicate definitions for `check_rate_limit`
-
-error[E0062]: field `current_volume` specified more than once
-  --> programs/hoe-dex-protection/src/types.rs:92:9
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+  --> programs/hoe-dex-protection/src/lib.rs:83:42
    |
-83 | #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
-   |                           ----------------- first use of `current_volume`
-...
-92 |     pub current_volume: u64,
-   |         ^^^^^^^^^^^^^^ used more than once
+83 |     pub fn remove_liquidity(ctx: Context<AdminAction>, amount: u64) -> Result<()> {
+   |                                          ^^^^^^^^^^^ use of undeclared type `AdminAction`
 
-error[E0062]: field `current_volume` specified more than once
-  --> programs/hoe-dex-protection/src/types.rs:92:5
-   |
-89 |     pub current_volume: u64,
-   |     ----------------------- first use of `current_volume`
-...
-92 |     pub current_volume: u64,
-   |     ^^^^^^^^^^^^^^^^^^^^^^^ used more than once
+error[E0433]: failed to resolve: use of undeclared type `ManageBlacklist`
+   --> programs/hoe-dex-protection/src/lib.rs:151:42
+    |
+151 |     pub fn blacklist_trader(ctx: Context<ManageBlacklist>, trader: Pubkey) -> Result<()> {
+    |                                          ^^^^^^^^^^^^^^^ use of undeclared type `ManageBlacklist`
 
-error[E0599]: no method named `with_values` found for enum `std::result::Result` in the current scope
-  --> programs/hoe-dex-protection/src/lib.rs:16:1
+error[E0433]: failed to resolve: use of undeclared type `ManageBlacklist`
+   --> programs/hoe-dex-protection/src/lib.rs:163:47
+    |
+163 |     pub fn remove_from_blacklist(ctx: Context<ManageBlacklist>, trader: Pubkey) -> Result<()> {
+    |                                               ^^^^^^^^^^^^^^^ use of undeclared type `ManageBlacklist`
+
+error[E0433]: failed to resolve: use of undeclared type `ManageBlacklist`
+   --> programs/hoe-dex-protection/src/lib.rs:175:49
+    |
+175 |     pub fn batch_blacklist_traders(ctx: Context<ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
+    |                                                 ^^^^^^^^^^^^^^^ use of undeclared type `ManageBlacklist`
+
+error[E0433]: failed to resolve: use of undeclared type `ManageBlacklist`
+   --> programs/hoe-dex-protection/src/lib.rs:186:51
+    |
+186 |     pub fn batch_unblacklist_traders(ctx: Context<ManageBlacklist>, traders: Vec<Pubkey>) -> Result<()> {
+    |                                                   ^^^^^^^^^^^^^^^ use of undeclared type `ManageBlacklist`
+
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+   --> programs/hoe-dex-protection/src/lib.rs:220:42
+    |
+220 |     pub fn unlock_fee_tiers(ctx: Context<AdminAction>) -> Result<()> {
+    |                                          ^^^^^^^^^^^ use of undeclared type `AdminAction`
+
+error[E0599]: the method `map_err` exists for enum `Result<ScheduleParameterUpdate, Error>`, but its trait bounds were not satisfied
+  --> programs/hoe-dex-protection/src/lib.rs:12:1
    |
-16 | #[program]
+12 | #[program]
    | ^^^^^^^^^^
    | |
-   | method not found in `Result<_, _>`
+   | method cannot be called on `Result<ScheduleParameterUpdate, Error>` due to unsatisfied trait bounds
+   | doesn't satisfy `ScheduleParameterUpdate: Sized`
    |
-   = note: this error originates in the macro `require_eq` which comes from the expansion of the attribute macro `program` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: the following trait bounds were not satisfied:
+           `{type error}: Sized`
+           which is required by `ScheduleParameterUpdate: Sized`
+   = note: this error originates in the attribute macro `program` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error[E0599]: no method named `with_values` found for enum `std::result::Result` in the current scope
-  --> programs/hoe-dex-protection/src/lib.rs:16:1
-   |
-16 | #[program]
-   | ^^^^^^^^^^
-   | |
-   | method not found in `Result<_, _>`
-   |
-   = note: this error originates in the macro `require_gte` which comes from the expansion of the attribute macro `program` (in Nightly builds, run with -Z macro-backtrace for more info)
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+   --> programs/hoe-dex-protection/src/lib.rs:231:22
+    |
+231 |         ctx: Context<AdminAction>,
+    |                      ^^^^^^^^^^^ use of undeclared type `AdminAction`
 
-error[E0609]: no field `version` on type `&mut anchor_lang::prelude::Account<'_, PoolState>`
-  --> programs/hoe-dex-protection/src/lib.rs:49:20
-   |
-49 |         pool_state.version = 1;
-   |                    ^^^^^^^ unknown field
-   |
-   = note: available fields are: `admin`, `emergency_admin`, `token_mint`, `token_decimals`, `total_liquidity` ... and 21 others
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+   --> programs/hoe-dex-protection/src/lib.rs:249:49
+    |
+249 |     pub fn cancel_parameter_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                                 ^^^^^^^^^^^ use of undeclared type `AdminAction`
 
-error[E0609]: no field `migration_flag` on type `&mut anchor_lang::prelude::Account<'_, PoolState>`
-  --> programs/hoe-dex-protection/src/lib.rs:50:20
-   |
-50 |         pool_state.migration_flag = false;
-   |                    ^^^^^^^^^^^^^^ unknown field
-   |
-   = note: available fields are: `admin`, `emergency_admin`, `token_mint`, `token_decimals`, `total_liquidity` ... and 21 others
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+   --> programs/hoe-dex-protection/src/lib.rs:265:48
+    |
+265 |     pub fn apply_parameter_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                                ^^^^^^^^^^^ use of undeclared type `AdminAction`
 
-error[E0609]: no field `last_admin_update` on type `&mut anchor_lang::prelude::Account<'_, PoolState>`
-  --> programs/hoe-dex-protection/src/lib.rs:63:20
-   |
-63 |         pool_state.last_admin_update = current_time;
-   |                    ^^^^^^^^^^^^^^^^^ unknown field
-   |
-   = note: available fields are: `admin`, `emergency_admin`, `token_mint`, `token_decimals`, `total_liquidity` ... and 21 others
+error[E0433]: failed to resolve: use of undeclared type `EmergencyAction`
+   --> programs/hoe-dex-protection/src/lib.rs:317:50
+    |
+317 |     pub fn schedule_emergency_pause(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                  ^^^^^^^^^^^^^^^ use of undeclared type `EmergencyAction`
 
-error[E0063]: missing fields `current_window`, `max_per_window` and `window_size` in initializer of `types::RateLimitSettings`
-  --> programs/hoe-dex-protection/src/lib.rs:74:33
-   |
-74 |         pool_state.rate_limit = RateLimitSettings {
-   |                                 ^^^^^^^^^^^^^^^^^ missing `current_window`, `max_per_window` and `window_size`
+error[E0433]: failed to resolve: use of undeclared type `EmergencyAction`
+   --> programs/hoe-dex-protection/src/lib.rs:334:47
+    |
+334 |     pub fn apply_emergency_pause(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                               ^^^^^^^^^^^^^^^ use of undeclared type `EmergencyAction`
 
-error[E0063]: missing fields `cooldown_period`, `current_amount` and `max_amount` in initializer of `types::CircuitBreakerSettings`
-  --> programs/hoe-dex-protection/src/lib.rs:80:38
-   |
-80 |         pool_state.circuit_breaker = CircuitBreakerSettings {
-   |                                      ^^^^^^^^^^^^^^^^^^^^^^ missing `cooldown_period`, `current_amount` and `max_amount`
+error[E0433]: failed to resolve: use of undeclared type `EmergencyAction`
+   --> programs/hoe-dex-protection/src/lib.rs:349:51
+    |
+349 |     pub fn schedule_emergency_resume(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                   ^^^^^^^^^^^^^^^ use of undeclared type `EmergencyAction`
 
-error[E0063]: missing field `decay_period` in initializer of `types::VolumeSettings`
-  --> programs/hoe-dex-protection/src/lib.rs:87:29
-   |
-87 |         pool_state.volume = VolumeSettings {
-   |                             ^^^^^^^^^^^^^^ missing `decay_period`
+error[E0433]: failed to resolve: use of undeclared type `EmergencyAction`
+   --> programs/hoe-dex-protection/src/lib.rs:366:48
+    |
+366 |     pub fn apply_emergency_resume(ctx: Context<EmergencyAction>) -> Result<()> {
+    |                                                ^^^^^^^^^^^^^^^ use of undeclared type `EmergencyAction`
+
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+   --> programs/hoe-dex-protection/src/lib.rs:381:47
+    |
+381 |     pub fn reset_circuit_breaker(ctx: Context<AdminAction>) -> Result<()> {
+    |                                               ^^^^^^^^^^^ use of undeclared type `AdminAction`
+
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+   --> programs/hoe-dex-protection/src/lib.rs:393:38
+    |
+393 |     pub fn update_admin(ctx: Context<AdminAction>, new_admin: Pubkey) -> Result<()> {
+    |                                      ^^^^^^^^^^^ use of undeclared type `AdminAction`
+
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+   --> programs/hoe-dex-protection/src/lib.rs:406:46
+    |
+406 |     pub fn reset_pending_update(ctx: Context<AdminAction>) -> Result<()> {
+    |                                              ^^^^^^^^^^^ use of undeclared type `AdminAction`
+
+error[E0433]: failed to resolve: use of undeclared type `AdminAction`
+   --> programs/hoe-dex-protection/src/lib.rs:420:38
+    |
+420 |     pub fn toggle_pause(ctx: Context<AdminAction>) -> Result<()> {
+    |                                      ^^^^^^^^^^^ use of undeclared type `AdminAction`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:127:9
-    |
-127 |         validation::validate_admin_action(&ctx.accounts.pool_state, &ctx.accounts.admin.key(), current_time)?;
-    |         ^^^^^^^^^^ use of undeclared crate or module `validation`
+  --> programs/hoe-dex-protection/src/lib.rs:65:9
+   |
+65 |         validation::validate_admin_action(&ctx.accounts.pool_state, &ctx.accounts.admin.key(), Clock::get()?.unix_timestamp)?;
+   |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
 error[E0599]: no variant or associated item named `InvalidAmount` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:132:42
-    |
-132 |             return Err(crate::ErrorCode::InvalidAmount.into());
-    |                                          ^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+  --> programs/hoe-dex-protection/src/lib.rs:67:35
+   |
+67 |             return Err(ErrorCode::InvalidAmount.into());
+   |                                   ^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:170:42
-    |
-170 |                 error!(crate::ErrorCode::Overflow)
-    |                                          ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0609]: no field `last_admin_update` on type `anchor_lang::prelude::Account<'_, PoolState>`
-   --> programs/hoe-dex-protection/src/lib.rs:174:33
-    |
-174 |         ctx.accounts.pool_state.last_admin_update = current_time;
-    |                                 ^^^^^^^^^^^^^^^^^ unknown field
-    |
-    = note: available fields are: `admin`, `emergency_admin`, `token_mint`, `token_decimals`, `total_liquidity` ... and 21 others
+  --> programs/hoe-dex-protection/src/lib.rs:70:102
+   |
+70 |         pool_state.total_liquidity = pool_state.total_liquidity.checked_add(amount).ok_or(ErrorCode::Overflow)?;
+   |                                                                                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:197:9
-    |
-197 |         validation::validate_admin_action(&ctx.accounts.pool_state, &ctx.accounts.admin.key(), current_time)?;
-    |         ^^^^^^^^^^ use of undeclared crate or module `validation`
+  --> programs/hoe-dex-protection/src/lib.rs:84:9
+   |
+84 |         validation::validate_admin_action(&ctx.accounts.pool_state, &ctx.accounts.admin.key(), Clock::get()?.unix_timestamp)?;
+   |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
 error[E0599]: no variant or associated item named `InvalidAmount` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:202:42
-    |
-202 |             return Err(crate::ErrorCode::InvalidAmount.into());
-    |                                          ^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+  --> programs/hoe-dex-protection/src/lib.rs:86:35
+   |
+86 |             return Err(ErrorCode::InvalidAmount.into());
+   |                                   ^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `InsufficientLiquidity` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:211:42
-    |
-211 |             return Err(crate::ErrorCode::InsufficientLiquidity.into());
-    |                                          ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+  --> programs/hoe-dex-protection/src/lib.rs:90:35
+   |
+90 |             return Err(ErrorCode::InsufficientLiquidity.into());
+   |                                   ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:219:42
-    |
-219 |                 error!(crate::ErrorCode::Overflow)
-    |                                          ^^^^^^^^ variant or associated item not found in `ErrorCode`
+  --> programs/hoe-dex-protection/src/lib.rs:92:102
+   |
+92 |         pool_state.total_liquidity = pool_state.total_liquidity.checked_sub(amount).ok_or(ErrorCode::Overflow)?;
+   |                                                                                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0609]: no field `last_admin_update` on type `anchor_lang::prelude::Account<'_, PoolState>`
-   --> programs/hoe-dex-protection/src/lib.rs:223:33
-    |
-223 |         ctx.accounts.pool_state.last_admin_update = current_time;
-    |                                 ^^^^^^^^^^^^^^^^^ unknown field
-    |
-    = note: available fields are: `admin`, `emergency_admin`, `token_mint`, `token_decimals`, `total_liquidity` ... and 21 others
+error[E0433]: failed to resolve: use of undeclared crate or module `utils`
+  --> programs/hoe-dex-protection/src/lib.rs:99:27
+   |
+99 |         let cpi_context = utils::create_cpi_context(&ctx.accounts.pool_state, &ctx, ctx.accounts.program_id)?;
+   |                           ^^^^^ use of undeclared crate or module `utils`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:253:9
+   --> programs/hoe-dex-protection/src/lib.rs:113:9
     |
-253 |         validation::validate_trade_parameters(&ctx.accounts.pool_state, amount_in, current_time)?;
+113 |         validation::validate_trade_parameters(&ctx.accounts.pool_state, amount_in, Clock::get()?.unix_timestamp)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
-error[E0599]: no method named `calculate_fee` found for struct `anchor_lang::prelude::Account<'_, PoolState>` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:256:62
-     |
-256  |         let (fee_amount, fee_mode) = ctx.accounts.pool_state.calculate_fee(amount_in, current_time as i64)?;
-     |                                      ------------------------^^^^^^^^^^^^^--------------------------------
-     |                                      |                       |
-     |                                      |                       this is an associated function, not a method
-     |                                      help: use associated function syntax instead: `PoolState::calculate_fee(&ctx.accounts.pool_state, amount_in, current_time as i64)`
-     |
-     = note: found the following associated functions; to be used as methods, functions must have a `self` parameter
-note: the candidate is defined in an impl for the type `PoolState`
-    --> programs/hoe-dex-protection/src/lib.rs:1667:5
-     |
-1667 |     fn calculate_fee(pool_state: &PoolState, amount_in: u64, current_time: i64) -> Result<(u64, u8)> {
-     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error[E0433]: failed to resolve: use of undeclared type `PoolState`
+   --> programs/hoe-dex-protection/src/lib.rs:115:38
+    |
+115 |         let (fee_amount, fee_mode) = PoolState::calculate_fee(&pool_state, amount_in, Clock::get()?.unix_timestamp)?;
+    |                                      ^^^^^^^^^ use of undeclared type `PoolState`
 
 error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:259:38
+   --> programs/hoe-dex-protection/src/lib.rs:116:77
     |
-259 |             error!(crate::ErrorCode::Overflow)
-    |                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0609]: no field `max_price_impact` on type `types::ProtectionSettings`
-   --> programs/hoe-dex-protection/src/lib.rs:264:62
-    |
-264 |         if price_impact > ctx.accounts.pool_state.protection.max_price_impact {
-    |                                                              ^^^^^^^^^^^^^^^^ unknown field
-    |
-help: a field with a similar name exists
-    |
-264 |         if price_impact > ctx.accounts.pool_state.protection.max_price_impact_bps {
-    |                                                              ~~~~~~~~~~~~~~~~~~~~
-
-error[E0609]: no field `max_price_impact` on type `types::ProtectionSettings`
-   --> programs/hoe-dex-protection/src/lib.rs:265:101
-    |
-265 |             msg!("Price impact too high: {} > {}", price_impact, ctx.accounts.pool_state.protection.max_price_impact);
-    |                                                                                                     ^^^^^^^^^^^^^^^^ unknown field
-    |
-help: a field with a similar name exists
-    |
-265 |             msg!("Price impact too high: {} > {}", price_impact, ctx.accounts.pool_state.protection.max_price_impact_bps);
-    |                                                                                                     ~~~~~~~~~~~~~~~~~~~~
+116 |         let amount_out = amount_in.checked_sub(fee_amount).ok_or(ErrorCode::Overflow)?;
+    |                                                                             ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `PriceImpactTooHigh` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:266:42
+   --> programs/hoe-dex-protection/src/lib.rs:119:35
     |
-266 |             return Err(crate::ErrorCode::PriceImpactTooHigh.into());
-    |                                          ^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+119 |             return Err(ErrorCode::PriceImpactTooHigh.into());
+    |                                   ^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:273:42
+   --> programs/hoe-dex-protection/src/lib.rs:121:75
     |
-273 |                 error!(crate::ErrorCode::Overflow)
-    |                                          ^^^^^^^^ variant or associated item not found in `ErrorCode`
+121 |         let slippage = amount_in.checked_sub(amount_out).ok_or(ErrorCode::Overflow)?
+    |                                                                           ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:278:46
+   --> programs/hoe-dex-protection/src/lib.rs:122:50
     |
-278 |                     error!(crate::ErrorCode::Overflow)
-    |                                              ^^^^^^^^ variant or associated item not found in `ErrorCode`
+122 |             .checked_mul(10000).ok_or(ErrorCode::Overflow)?
+    |                                                  ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:282:42
+   --> programs/hoe-dex-protection/src/lib.rs:123:54
     |
-282 |                 error!(crate::ErrorCode::Overflow)
-    |                                          ^^^^^^^^ variant or associated item not found in `ErrorCode`
+123 |             .checked_div(amount_in).ok_or(ErrorCode::Overflow)?;
+    |                                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `SlippageExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:288:42
+   --> programs/hoe-dex-protection/src/lib.rs:125:35
     |
-288 |             return Err(crate::ErrorCode::SlippageExceeded.into());
-    |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+125 |             return Err(ErrorCode::SlippageExceeded.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `utils`
+   --> programs/hoe-dex-protection/src/lib.rs:139:27
+    |
+139 |         let cpi_context = utils::create_cpi_context(&ctx.accounts.pool_state, &ctx, ctx.program_id)?;
+    |                           ^^^^^ use of undeclared crate or module `utils`
 
 error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:316:42
+   --> programs/hoe-dex-protection/src/lib.rs:142:116
     |
-316 |                 error!(crate::ErrorCode::Overflow)
-    |                                          ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:323:42
-    |
-323 |                 error!(crate::ErrorCode::Overflow)
-    |                                          ^^^^^^^^ variant or associated item not found in `ErrorCode`
+142 |         pool_state.total_fees_collected = pool_state.total_fees_collected.checked_add(fee_amount).ok_or(ErrorCode::Overflow)?;
+    |                                                                                                                    ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0433]: failed to resolve: use of undeclared type `FeeMode`
-   --> programs/hoe-dex-protection/src/lib.rs:342:23
+   --> programs/hoe-dex-protection/src/lib.rs:146:23
     |
-342 |             fee_mode: FeeMode::from_u8(fee_mode).unwrap_or(FeeMode::None),
+146 |             fee_mode: FeeMode::from_u8(fee_mode).unwrap_or(FeeMode::None),
     |                       ^^^^^^^ use of undeclared type `FeeMode`
 
 error[E0433]: failed to resolve: use of undeclared type `FeeMode`
-   --> programs/hoe-dex-protection/src/lib.rs:342:60
+   --> programs/hoe-dex-protection/src/lib.rs:146:60
     |
-342 |             fee_mode: FeeMode::from_u8(fee_mode).unwrap_or(FeeMode::None),
+146 |             fee_mode: FeeMode::from_u8(fee_mode).unwrap_or(FeeMode::None),
     |                                                            ^^^^^^^ use of undeclared type `FeeMode`
 
-error[E0433]: failed to resolve: use of undeclared type `ReentrancyGuard`
-   --> programs/hoe-dex-protection/src/lib.rs:364:22
-    |
-364 |         let _guard = ReentrancyGuard::new(pool_state)?;
-    |                      ^^^^^^^^^^^^^^^ use of undeclared type `ReentrancyGuard`
-
 error[E0433]: failed to resolve: use of undeclared crate or module `utils`
-   --> programs/hoe-dex-protection/src/lib.rs:366:9
+   --> programs/hoe-dex-protection/src/lib.rs:154:9
     |
-366 |         utils::process_blacklist_operations(
+154 |         utils::process_blacklist_operations(
     |         ^^^^^ use of undeclared crate or module `utils`
 
 error[E0433]: failed to resolve: use of undeclared type `BlacklistOperation`
-   --> programs/hoe-dex-protection/src/lib.rs:369:13
+   --> programs/hoe-dex-protection/src/lib.rs:157:13
     |
-369 |             BlacklistOperation::Add,
-    |             ^^^^^^^^^^^^^^^^^^ use of undeclared type `BlacklistOperation`
-
-error[E0433]: failed to resolve: use of undeclared type `ReentrancyGuard`
-   --> programs/hoe-dex-protection/src/lib.rs:384:22
-    |
-384 |         let _guard = ReentrancyGuard::new(pool_state)?;
-    |                      ^^^^^^^^^^^^^^^ use of undeclared type `ReentrancyGuard`
-
-error[E0433]: failed to resolve: use of undeclared crate or module `utils`
-   --> programs/hoe-dex-protection/src/lib.rs:386:9
-    |
-386 |         utils::process_blacklist_operations(
-    |         ^^^^^ use of undeclared crate or module `utils`
-
-error[E0433]: failed to resolve: use of undeclared type `BlacklistOperation`
-   --> programs/hoe-dex-protection/src/lib.rs:389:13
-    |
-389 |             BlacklistOperation::Remove,
+157 |             BlacklistOperation::Add,
     |             ^^^^^^^^^^^^^^^^^^ use of undeclared type `BlacklistOperation`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `utils`
-   --> programs/hoe-dex-protection/src/lib.rs:405:9
+   --> programs/hoe-dex-protection/src/lib.rs:166:9
     |
-405 |         utils::process_blacklist_operations(
+166 |         utils::process_blacklist_operations(
     |         ^^^^^ use of undeclared crate or module `utils`
 
 error[E0433]: failed to resolve: use of undeclared type `BlacklistOperation`
-   --> programs/hoe-dex-protection/src/lib.rs:408:13
+   --> programs/hoe-dex-protection/src/lib.rs:169:13
     |
-408 |             BlacklistOperation::Add,
+169 |             BlacklistOperation::Remove,
     |             ^^^^^^^^^^^^^^^^^^ use of undeclared type `BlacklistOperation`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `utils`
-   --> programs/hoe-dex-protection/src/lib.rs:423:9
+   --> programs/hoe-dex-protection/src/lib.rs:177:9
     |
-423 |         utils::process_blacklist_operations(
+177 |         utils::process_blacklist_operations(
     |         ^^^^^ use of undeclared crate or module `utils`
 
 error[E0433]: failed to resolve: use of undeclared type `BlacklistOperation`
-   --> programs/hoe-dex-protection/src/lib.rs:426:13
+   --> programs/hoe-dex-protection/src/lib.rs:180:13
     |
-426 |             BlacklistOperation::Remove,
+180 |             BlacklistOperation::Add,
+    |             ^^^^^^^^^^^^^^^^^^ use of undeclared type `BlacklistOperation`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `utils`
+   --> programs/hoe-dex-protection/src/lib.rs:188:9
+    |
+188 |         utils::process_blacklist_operations(
+    |         ^^^^^ use of undeclared crate or module `utils`
+
+error[E0433]: failed to resolve: use of undeclared type `BlacklistOperation`
+   --> programs/hoe-dex-protection/src/lib.rs:191:13
+    |
+191 |             BlacklistOperation::Remove,
     |             ^^^^^^^^^^^^^^^^^^ use of undeclared type `BlacklistOperation`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:442:9
+   --> programs/hoe-dex-protection/src/lib.rs:200:9
     |
-442 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+200 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
-error[E0609]: no field `token_mint` on type `&mut contexts::WithdrawFees<'_>`
-   --> programs/hoe-dex-protection/src/lib.rs:445:46
+error[E0433]: failed to resolve: use of undeclared crate or module `utils`
+   --> programs/hoe-dex-protection/src/lib.rs:204:27
     |
-445 |         state.check_token_mint(&ctx.accounts.token_mint)?;
-    |                                              ^^^^^^^^^^ unknown field
-    |
-help: one of the expressions' fields has a field of the same name
-    |
-445 |         state.check_token_mint(&ctx.accounts.pool_state.token_mint)?;
-    |                                              +++++++++++
-
-error[E0599]: no variant or associated item named `NoFeesAvailable` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:450:79
-    |
-450 |         validate_condition!(state.total_fees_collected > 0, crate::ErrorCode::NoFeesAvailable);
-    |                                                                               ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+204 |         let cpi_context = utils::create_cpi_context(state, &ctx, ctx.program_id)?;
+    |                           ^^^^^ use of undeclared crate or module `utils`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:489:9
+   --> programs/hoe-dex-protection/src/lib.rs:213:9
     |
-489 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+213 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
-error[E0599]: no variant or associated item named `FeeTiersLocked` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:492:72
-    |
-492 |         validate_condition!(!state.fee_tiers_locked, crate::ErrorCode::FeeTiersLocked);
-    |                                                                        ^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:519:9
+   --> programs/hoe-dex-protection/src/lib.rs:223:9
     |
-519 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+223 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
-error[E0599]: no variant or associated item named `FeeTiersNotLocked` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:522:71
-    |
-522 |         validate_condition!(state.fee_tiers_locked, crate::ErrorCode::FeeTiersNotLocked);
-    |                                                                       ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:554:9
+   --> programs/hoe-dex-protection/src/lib.rs:236:9
     |
-554 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+236 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
-error[E0308]: mismatched types
-   --> programs/hoe-dex-protection/src/lib.rs:576:20
+error[E0433]: failed to resolve: use of undeclared crate or module `validation`
+   --> programs/hoe-dex-protection/src/lib.rs:238:13
     |
-576 |             if let Some(fee_tiers) = &settings.fee_tiers {
-    |                    ^^^^^^^^^^^^^^^   ------------------- this expression has type `&Vec<types::FeeTier>`
-    |                    |
-    |                    expected `Vec<FeeTier>`, found `Option<_>`
-    |
-    = note: expected struct `Vec<types::FeeTier>`
-                 found enum `Option<_>`
+238 |             validation::validate_fee_parameters(state, fee_tiers)?;
+    |             ^^^^^^^^^^ use of undeclared crate or module `validation`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:577:17
+   --> programs/hoe-dex-protection/src/lib.rs:252:9
     |
-577 |                 validation::validate_fee_parameters(state, fee_tiers)?;
-    |                 ^^^^^^^^^^ use of undeclared crate or module `validation`
-
-error[E0308]: mismatched types
-   --> programs/hoe-dex-protection/src/lib.rs:593:29
-    |
-593 |             scheduled_time: current_time + 86400,
-    |                             ^^^^^^^^^^^^^^^^^^^^ expected `i64`, found `u64`
+252 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+    |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:609:9
+   --> programs/hoe-dex-protection/src/lib.rs:268:9
     |
-609 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+268 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
 error[E0599]: no variant or associated item named `NoPendingUpdate` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:613:38
+   --> programs/hoe-dex-protection/src/lib.rs:269:75
     |
-613 |             error!(crate::ErrorCode::NoPendingUpdate, "No pending update available")
-    |                                      ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:641:9
-    |
-641 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
-    |         ^^^^^^^^^^ use of undeclared crate or module `validation`
-
-error[E0599]: no variant or associated item named `NoPendingUpdate` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:644:31
-    |
-644 |             crate::ErrorCode::NoPendingUpdate,
-    |                               ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `TimelockNotExpired` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:651:31
-    |
-651 |             crate::ErrorCode::TimelockNotExpired,
-    |                               ^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0609]: no field `daily_limit` on type `types::VolumeSettings`
-   --> programs/hoe-dex-protection/src/lib.rs:676:26
-    |
-676 |             state.volume.daily_limit = protection_settings.max_daily_volume;
-    |                          ^^^^^^^^^^^ unknown field
-    |
-    = note: available fields are: `volume_24h`, `last_update`, `last_decay`, `max_daily`, `current_volume` ... and 3 others
-
-error[E0609]: no field `max_price_impact` on type `types::ProtectionSettings`
-   --> programs/hoe-dex-protection/src/lib.rs:677:30
-    |
-677 |             state.protection.max_price_impact = protection_settings.max_price_impact_bps;
-    |                              ^^^^^^^^^^^^^^^^ unknown field
-    |
-help: a field with a similar name exists
-    |
-677 |             state.protection.max_price_impact_bps = protection_settings.max_price_impact_bps;
-    |                              ~~~~~~~~~~~~~~~~~~~~
-
-error[E0609]: no field `max_slippage` on type `&types::ProtectionSettingsUpdate`
-   --> programs/hoe-dex-protection/src/lib.rs:678:65
-    |
-678 |             state.protection.max_slippage = protection_settings.max_slippage;
-    |                                                                 ^^^^^^^^^^^^ unknown field
-    |
-    = note: available fields are: `max_daily_volume`, `max_price_impact_bps`, `circuit_breaker_threshold`, `circuit_breaker_window`, `circuit_breaker_cooldown` ... and 2 others
-
-error[E0609]: no field `blacklist_enabled` on type `&types::ProtectionSettingsUpdate`
-   --> programs/hoe-dex-protection/src/lib.rs:679:70
-    |
-679 |             state.protection.blacklist_enabled = protection_settings.blacklist_enabled;
-    |                                                                      ^^^^^^^^^^^^^^^^^ unknown field
-    |
-    = note: available fields are: `max_daily_volume`, `max_price_impact_bps`, `circuit_breaker_threshold`, `circuit_breaker_window`, `circuit_breaker_cooldown` ... and 2 others
-
-error[E0308]: mismatched types
-   --> programs/hoe-dex-protection/src/lib.rs:684:42
-    |
-684 |             state.rate_limit.max_calls = protection_settings.rate_limit_max as u64;
-    |             --------------------------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u32`, found `u64`
-    |             |
-    |             expected due to the type of this binding
-
-error[E0609]: no field `max_slippage` on type `&types::ProtectionSettingsUpdate`
-   --> programs/hoe-dex-protection/src/lib.rs:691:51
-    |
-691 |                 max_slippage: protection_settings.max_slippage,
-    |                                                   ^^^^^^^^^^^^ unknown field
-    |
-    = note: available fields are: `max_daily_volume`, `max_price_impact_bps`, `circuit_breaker_threshold`, `circuit_breaker_window`, `circuit_breaker_cooldown` ... and 2 others
-
-error[E0609]: no field `blacklist_enabled` on type `&types::ProtectionSettingsUpdate`
-   --> programs/hoe-dex-protection/src/lib.rs:692:56
-    |
-692 |                 blacklist_enabled: protection_settings.blacklist_enabled,
-    |                                                        ^^^^^^^^^^^^^^^^^ unknown field
-    |
-    = note: available fields are: `max_daily_volume`, `max_price_impact_bps`, `circuit_breaker_threshold`, `circuit_breaker_window`, `circuit_breaker_cooldown` ... and 2 others
-
-error[E0599]: no variant or associated item named `InvalidEmergencyAdmin` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:755:31
-    |
-755 |             crate::ErrorCode::InvalidEmergencyAdmin
-    |                               ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `EmergencyPaused` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:759:75
-    |
-759 |         validate_condition!(!state.is_emergency_paused, crate::ErrorCode::EmergencyPaused);
+269 |         let pending_update = state.pending_update.take().ok_or(ErrorCode::NoPendingUpdate)?;
     |                                                                           ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0308]: mismatched types
-   --> programs/hoe-dex-protection/src/lib.rs:768:29
+error[E0599]: no variant or associated item named `TimelockNotExpired` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:271:35
     |
-768 |             scheduled_time: current_time + 3600,
-    |                             ^^^^^^^^^^^^^^^^^^^ expected `i64`, found `u64`
+271 |             return Err(ErrorCode::TimelockNotExpired.into());
+    |                                   ^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `InvalidEmergencyAdmin` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:786:31
+   --> programs/hoe-dex-protection/src/lib.rs:321:35
     |
-786 |             crate::ErrorCode::InvalidEmergencyAdmin
-    |                               ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+321 |             return Err(ErrorCode::InvalidEmergencyAdmin.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0433]: failed to resolve: use of undeclared type `ParameterUpdate`
+   --> programs/hoe-dex-protection/src/lib.rs:325:21
+    |
+325 |             update: ParameterUpdate::State(StateSettingsUpdate {
+    |                     ^^^^^^^^^^^^^^^ use of undeclared type `ParameterUpdate`
+
+error[E0599]: no variant or associated item named `InvalidEmergencyAdmin` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:338:35
+    |
+338 |             return Err(ErrorCode::InvalidEmergencyAdmin.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `NoPendingUpdate` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:340:75
+    |
+340 |         let pending_update = state.pending_update.take().ok_or(ErrorCode::NoPendingUpdate)?;
+    |                                                                           ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `TimelockNotExpired` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:792:31
+   --> programs/hoe-dex-protection/src/lib.rs:342:35
     |
-792 |             crate::ErrorCode::TimelockNotExpired
-    |                               ^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+342 |             return Err(ErrorCode::TimelockNotExpired.into());
+    |                                   ^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `InvalidEmergencyAdmin` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:821:31
+   --> programs/hoe-dex-protection/src/lib.rs:353:35
     |
-821 |             crate::ErrorCode::InvalidEmergencyAdmin
-    |                               ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+353 |             return Err(ErrorCode::InvalidEmergencyAdmin.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0599]: no variant or associated item named `PoolNotPaused` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:825:74
+error[E0433]: failed to resolve: use of undeclared type `ParameterUpdate`
+   --> programs/hoe-dex-protection/src/lib.rs:357:21
     |
-825 |         validate_condition!(state.is_emergency_paused, crate::ErrorCode::PoolNotPaused);
-    |                                                                          ^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-   --> programs/hoe-dex-protection/src/lib.rs:834:29
-    |
-834 |             scheduled_time: current_time + 3600,
-    |                             ^^^^^^^^^^^^^^^^^^^ expected `i64`, found `u64`
+357 |             update: ParameterUpdate::State(StateSettingsUpdate {
+    |                     ^^^^^^^^^^^^^^^ use of undeclared type `ParameterUpdate`
 
 error[E0599]: no variant or associated item named `InvalidEmergencyAdmin` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:852:31
+   --> programs/hoe-dex-protection/src/lib.rs:370:35
     |
-852 |             crate::ErrorCode::InvalidEmergencyAdmin
-    |                               ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+370 |             return Err(ErrorCode::InvalidEmergencyAdmin.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `NoPendingUpdate` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:372:75
+    |
+372 |         let pending_update = state.pending_update.take().ok_or(ErrorCode::NoPendingUpdate)?;
+    |                                                                           ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `TimelockNotExpired` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:858:31
+   --> programs/hoe-dex-protection/src/lib.rs:374:35
     |
-858 |             crate::ErrorCode::TimelockNotExpired
-    |                               ^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+374 |             return Err(ErrorCode::TimelockNotExpired.into());
+    |                                   ^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:885:9
+   --> programs/hoe-dex-protection/src/lib.rs:384:9
     |
-885 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+384 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
 error[E0599]: no variant or associated item named `CircuitBreakerCooldown` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:890:31
+   --> programs/hoe-dex-protection/src/lib.rs:386:35
     |
-890 |             crate::ErrorCode::CircuitBreakerCooldown
-    |                               ^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+386 |             return Err(ErrorCode::CircuitBreakerCooldown.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:918:9
+   --> programs/hoe-dex-protection/src/lib.rs:396:9
     |
-918 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+396 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
 error[E0599]: no variant or associated item named `InvalidNewAdmin` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:923:31
+   --> programs/hoe-dex-protection/src/lib.rs:398:35
     |
-923 |             crate::ErrorCode::InvalidNewAdmin
-    |                               ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0609]: no field `last_admin_update` on type `&mut anchor_lang::prelude::Account<'_, PoolState>`
-   --> programs/hoe-dex-protection/src/lib.rs:929:15
-    |
-929 |         state.last_admin_update = current_time;
-    |               ^^^^^^^^^^^^^^^^^ unknown field
-    |
-    = note: available fields are: `admin`, `emergency_admin`, `token_mint`, `token_decimals`, `total_liquidity` ... and 21 others
+398 |             return Err(ErrorCode::InvalidNewAdmin.into());
+    |                                   ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:949:9
+   --> programs/hoe-dex-protection/src/lib.rs:409:9
     |
-949 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+409 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
-
-error[E0599]: no variant or associated item named `NoPendingUpdate` found for enum `anchor_lang::error::ErrorCode` in the current scope
-   --> programs/hoe-dex-protection/src/lib.rs:952:79
-    |
-952 |         validate_condition!(state.pending_update.is_some(), crate::ErrorCode::NoPendingUpdate);
-    |                                                                               ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0560]: struct `events::ParameterUpdateCancelled` has no field named `scheduled_time`
-   --> programs/hoe-dex-protection/src/lib.rs:962:13
-    |
-962 |             scheduled_time: current_time as i64,
-    |             ^^^^^^^^^^^^^^ `events::ParameterUpdateCancelled` does not have this field
-    |
-    = note: all struct fields are already assigned
 
 error[E0433]: failed to resolve: use of undeclared crate or module `validation`
-   --> programs/hoe-dex-protection/src/lib.rs:979:9
+   --> programs/hoe-dex-protection/src/lib.rs:423:9
     |
-979 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
+423 |         validation::validate_admin_action(state, &ctx.accounts.admin.key(), current_time)?;
     |         ^^^^^^^^^^ use of undeclared crate or module `validation`
 
-error[E0308]: mismatched types
-   --> programs/hoe-dex-protection/src/lib.rs:990:21
+error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:472:35
     |
-990 |                 ts: current_time,
-    |                     ^^^^^^^^^^^^ expected `i64`, found `u64`
+472 |             return Err(ErrorCode::InvalidTimestamp.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0308]: mismatched types
-   --> programs/hoe-dex-protection/src/lib.rs:996:21
+error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:484:35
     |
-996 |                 ts: current_time,
-    |                     ^^^^^^^^^^^^ expected `i64`, found `u64`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1021:21
-     |
-1021 |                 ts: current_time,
-     |                     ^^^^^^^^^^^^ expected `i64`, found `u64`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1027:21
-     |
-1027 |                 ts: current_time,
-     |                     ^^^^^^^^^^^^ expected `i64`, found `u64`
+484 |             return Err(ErrorCode::InvalidTimestamp.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1036:42
-     |
-1036 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1059:42
-     |
-1059 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `VolumeLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1069:31
-     |
-1069 |             crate::ErrorCode::VolumeLimitExceeded
-     |                               ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1076:42
-     |
-1076 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `RateLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1086:31
-     |
-1086 |             crate::ErrorCode::RateLimitExceeded
-     |                               ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1093:42
-     |
-1093 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `RateLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1105:31
-     |
-1105 |             crate::ErrorCode::RateLimitExceeded
-     |                               ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1112:42
-     |
-1112 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `CircuitBreakerTriggered` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1122:31
-     |
-1122 |             crate::ErrorCode::CircuitBreakerTriggered
-     |                               ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1129:42
-     |
-1129 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `CircuitBreakerTriggered` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1140:31
-     |
-1140 |             crate::ErrorCode::CircuitBreakerTriggered
-     |                               ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no method named `with_pubkeys` found for enum `std::result::Result` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1167:10
-     |
-1167 | #[derive(Accounts)]
-     |          ^^^^^^^^ method not found in `Result<_, _>`
-     |
-     = note: this error originates in the macro `require_keys_neq` which comes from the expansion of the derive macro `Accounts` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0277]: can't compare `&anchor_lang::prelude::Pubkey` with `anchor_lang::prelude::Pubkey`
-    --> programs/hoe-dex-protection/src/lib.rs:1253:67
-     |
-1253 |             constraint = reentrancy_guard.to_account_info().owner == crate::ID
-     |                                                                   ^^ no implementation for `&anchor_lang::prelude::Pubkey == anchor_lang::prelude::Pubkey`
-     |
-     = help: the trait `PartialEq<anchor_lang::prelude::Pubkey>` is not implemented for `&anchor_lang::prelude::Pubkey`
-help: consider dereferencing here
-     |
-1253 |             constraint = *reentrancy_guard.to_account_info().owner == crate::ID
-     |                          +
-
-error[E0277]: can't compare `&anchor_lang::prelude::Pubkey` with `anchor_lang::prelude::Pubkey`
-    --> programs/hoe-dex-protection/src/lib.rs:1268:67
-     |
-1268 |             constraint = reentrancy_guard.to_account_info().owner == crate::ID
-     |                                                                   ^^ no implementation for `&anchor_lang::prelude::Pubkey == anchor_lang::prelude::Pubkey`
-     |
-     = help: the trait `PartialEq<anchor_lang::prelude::Pubkey>` is not implemented for `&anchor_lang::prelude::Pubkey`
-help: consider dereferencing here
-     |
-1268 |             constraint = *reentrancy_guard.to_account_info().owner == crate::ID
-     |                          +
-
-error[E0599]: no method named `ok_or` found for tuple `(anchor_lang::prelude::Pubkey, u8)` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1332:7
-     |
-1329 | /     Pubkey::find_program_address(
-1330 | |         &[b"pool_authority", pool_state.as_ref()],
-1331 | |         program_id,
-1332 | |     ).ok_or(crate::ErrorCode::InvalidPoolAuthority)
-     | |      -^^^^^ method not found in `(Pubkey, u8)`
-     | |______|
-     | 
-
-error[E0599]: no variant or associated item named `InvalidPoolAuthority` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1332:31
-     |
-1332 |     ).ok_or(crate::ErrorCode::InvalidPoolAuthority)
-     |                               ^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1421:21
-     |
-1421 |                 ts: current_time,
-     |                     ^^^^^^^^^^^^ expected `i64`, found `u64`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1427:21
-     |
-1427 |                 ts: current_time,
-     |                     ^^^^^^^^^^^^ expected `i64`, found `u64`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1436:42
-     |
-1436 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1459:42
-     |
-1459 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `VolumeLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1469:31
-     |
-1469 |             crate::ErrorCode::VolumeLimitExceeded
-     |                               ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1476:42
-     |
-1476 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `RateLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1486:31
-     |
-1486 |             crate::ErrorCode::RateLimitExceeded
-     |                               ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1493:42
-     |
-1493 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `RateLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1505:31
-     |
-1505 |             crate::ErrorCode::RateLimitExceeded
-     |                               ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1512:42
-     |
-1512 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `CircuitBreakerTriggered` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1522:31
-     |
-1522 |             crate::ErrorCode::CircuitBreakerTriggered
-     |                               ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1529:42
-     |
-1529 |             return Err(crate::ErrorCode::InvalidTimestamp.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `CircuitBreakerTriggered` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1540:31
-     |
-1540 |             crate::ErrorCode::CircuitBreakerTriggered
-     |                               ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `PoolPaused` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1561:53
-     |
-1561 |         require!(!self.is_paused, crate::ErrorCode::PoolPaused);
-     |                                                     ^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1568:17
-     |
-1568 |             ts: current_time,
-     |                 ^^^^^^^^^^^^ expected `i64`, found `u64`
-
-error[E0599]: no variant or associated item named `PoolNotPaused` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1575:52
-     |
-1575 |         require!(self.is_paused, crate::ErrorCode::PoolNotPaused);
-     |                                                    ^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1582:17
-     |
-1582 |             ts: current_time,
-     |                 ^^^^^^^^^^^^ expected `i64`, found `u64`
-
-error[E0599]: no variant or associated item named `InvalidTokenMint` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1589:78
-     |
-1589 |         validate_condition!(mint.key() == self.token_mint, crate::ErrorCode::InvalidTokenMint);
-     |                                                                              ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTokenDecimals` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1590:85
-     |
-1590 |         validate_condition!(mint.decimals == self.token_decimals, crate::ErrorCode::InvalidTokenDecimals);
-     |                                                                                     ^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `TokenMintHasFreezeAuthority` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1591:80
-     |
-1591 |         validate_condition!(mint.freeze_authority.is_none(), crate::ErrorCode::TokenMintHasFreezeAuthority);
-     |                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTokenAccount` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1598:42
-     |
-1598 |             return Err(crate::ErrorCode::InvalidTokenAccount.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no method named `is_delegated` found for reference `&anchor_lang::prelude::Account<'_, anchor_spl::token::TokenAccount>` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1600:20
-     |
-1600 |         if account.is_delegated() {
-     |                    ^^^^^^^^^^^^ method not found in `&Account<'_, TokenAccount>`
-
-error[E0599]: no variant or associated item named `TokenAccountDelegated` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1602:42
-     |
-1602 |             return Err(crate::ErrorCode::TokenAccountDelegated.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+   --> programs/hoe-dex-protection/src/lib.rs:496:35
+    |
+496 |             return Err(ErrorCode::InvalidTimestamp.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1654:38
-     |
-1654 |             .ok_or(crate::ErrorCode::Overflow)?
-     |                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1656:38
-     |
-1656 |             .ok_or(crate::ErrorCode::Overflow)?;
-     |                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1672:42
-     |
-1672 |                 .ok_or(crate::ErrorCode::Overflow)?
-     |                                          ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1674:42
-     |
-1674 |                 .ok_or(crate::ErrorCode::Overflow)?;
-     |                                          ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1679:54
-     |
-1679 | ...   .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                            ----------- ^^^ expected `u64`, found `u16`
-     |                            |
-     |                            arguments to this method are incorrect
-     |
-note: method defined here
-    --> /home/runner/work/platform-tools/platform-tools/out/rust/library/core/src/num/mod.rs:1169:5
-     = note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
-help: you can convert a `u16` to a `u64`
-     |
-1679 |                     .map(|bps| amount_in.checked_mul(bps.into()).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                                         +++++++
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1679:83
-     |
-1679 | ...   .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                                                     ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1679:137
-     |
-1679 | ...d_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                         ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1693:46
-     |
-1693 |                     .ok_or(crate::ErrorCode::Overflow)?
-     |                                              ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1695:46
-     |
-1695 |                     .ok_or(crate::ErrorCode::Overflow)?;
-     |                                              ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1700:58
-     |
-1700 | ...   .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                            ----------- ^^^ expected `u64`, found `u16`
-     |                            |
-     |                            arguments to this method are incorrect
-     |
-note: method defined here
-    --> /home/runner/work/platform-tools/platform-tools/out/rust/library/core/src/num/mod.rs:1169:5
-     = note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
-help: you can convert a `u16` to a `u64`
-     |
-1700 |                         .map(|bps| amount_in.checked_mul(bps.into()).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                                             +++++++
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1700:87
-     |
-1700 | ...   .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                                                     ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1700:141
-     |
-1700 | ...d_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                         ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1712:46
-     |
-1712 |             .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                  ----------- ^^^ expected `u64`, found `u16`
-     |                                  |
-     |                                  arguments to this method are incorrect
-     |
-note: method defined here
-    --> /home/runner/work/platform-tools/platform-tools/out/rust/library/core/src/num/mod.rs:1169:5
-     = note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
-help: you can convert a `u16` to a `u64`
-     |
-1712 |             .map(|bps| amount_in.checked_mul(bps.into()).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                                 +++++++
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1712:75
-     |
-1712 |             .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                                                           ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1712:129
-     |
-1712 |             .map(|bps| amount_in.checked_mul(bps).ok_or(crate::ErrorCode::Overflow)?.checked_div(10000).ok_or(crate::ErrorCode::Overflow)?)
-     |                                                                                                                                 ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1721:38
-     |
-1721 |             .ok_or(crate::ErrorCode::Overflow)?;
-     |                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1730:38
-     |
-1730 |             .ok_or(crate::ErrorCode::Overflow)?;
-     |                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidFeeTier` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1740:42
-     |
-1740 |             return Err(crate::ErrorCode::InvalidFeeTier.into());
-     |                                          ^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `TooManyFeeTiers` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1746:42
-     |
-1746 |             return Err(crate::ErrorCode::TooManyFeeTiers.into());
-     |                                          ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidFeeTierSpacing` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1761:46
-     |
-1761 |                 return Err(crate::ErrorCode::InvalidFeeTierSpacing.into());
-     |                                              ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `FeeTooLow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1771:46
-     |
-1771 |                 return Err(crate::ErrorCode::FeeTooLow.into());
-     |                                              ^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `FeeTooHigh` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1779:46
-     |
-1779 |                 return Err(crate::ErrorCode::FeeTooHigh.into());
-     |                                              ^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidFeeTier` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1789:46
-     |
-1789 |                 return Err(crate::ErrorCode::InvalidFeeTier.into());
-     |                                              ^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `DuplicateFeeTierThreshold` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1795:46
-     |
-1795 |                 return Err(crate::ErrorCode::DuplicateFeeTierThreshold.into());
-     |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `FeeTooLow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1808:31
-     |
-1808 |             crate::ErrorCode::FeeTooLow,
-     |                               ^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0609]: no field `window_start` on type `types::RateLimitSettings`
-    --> programs/hoe-dex-protection/src/lib.rs:1847:25
-     |
-1847 |         self.rate_limit.window_start = current_unix_ts()?;
-     |                         ^^^^^^^^^^^^ unknown field
-     |
-help: a field with a similar name exists
-     |
-1847 |         self.rate_limit.window_size = current_unix_ts()?;
-     |                         ~~~~~~~~~~~
-
-error[E0599]: no variant or associated item named `InvalidFeeTier` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1872:35
-     |
-1872 |                 crate::ErrorCode::InvalidFeeTier,
-     |                                   ^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidFeeTier` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1880:35
-     |
-1880 |                 crate::ErrorCode::InvalidFeeTier,
-     |                                   ^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `RateLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1902:42
-     |
-1902 |             return Err(crate::ErrorCode::RateLimitExceeded.into());
-     |                                          ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1906:38
-     |
-1906 |             .ok_or(crate::ErrorCode::Overflow)?;
-     |                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Unauthorized` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1916:42
-     |
-1916 |             return Err(crate::ErrorCode::Unauthorized.into());
-     |                                          ^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidPoolAuthority` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1925:42
-     |
-1925 |             return Err(crate::ErrorCode::InvalidPoolAuthority.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTokenMint` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1933:42
-     |
-1933 |             return Err(crate::ErrorCode::InvalidTokenMint.into());
-     |                                          ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTokenDecimals` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1940:42
-     |
-1940 |             return Err(crate::ErrorCode::InvalidTokenDecimals.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `TokenMintHasFreezeAuthority` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1944:42
-     |
-1944 |             return Err(crate::ErrorCode::TokenMintHasFreezeAuthority.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `InvalidTokenAccount` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1952:42
-     |
-1952 |             return Err(crate::ErrorCode::InvalidTokenAccount.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no method named `is_delegated` found for reference `&anchor_lang::prelude::Account<'_, anchor_spl::token::TokenAccount>` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1954:20
-     |
-1954 |         if account.is_delegated() {
-     |                    ^^^^^^^^^^^^ method not found in `&Account<'_, TokenAccount>`
-
-error[E0599]: no variant or associated item named `TokenAccountDelegated` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1956:42
-     |
-1956 |             return Err(crate::ErrorCode::TokenAccountDelegated.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1963:27
-     |
-1963 |         if current_time < cooldown_end {
-     |            ------------   ^^^^^^^^^^^^ expected `i64`, found `u64`
-     |            |
-     |            expected because this is `i64`
-     |
-help: you can convert a `u64` to an `i64` and panic if the converted value doesn't fit
-     |
-1963 |         if current_time < cooldown_end.try_into().unwrap() {
-     |                                       ++++++++++++++++++++
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1964:90
-     |
-1964 |             msg!("Circuit breaker cooldown active: {} seconds remaining", cooldown_end - current_time);
-     |                                                                                          ^^^^^^^^^^^^ expected `u64`, found `i64`
-
-error[E0277]: cannot subtract `i64` from `u64`
-    --> programs/hoe-dex-protection/src/lib.rs:1964:88
-     |
-1964 |             msg!("Circuit breaker cooldown active: {} seconds remaining", cooldown_end - current_time);
-     |                                                                                        ^ no implementation for `u64 - i64`
-     |
-     = help: the trait `Sub<i64>` is not implemented for `u64`
-     = help: the following other types implement trait `Sub<Rhs>`:
-               <&'a u64 as Sub<u64>>
-               <&u64 as Sub<&u64>>
-               <u64 as Sub<&u64>>
-               <u64 as Sub>
-
-error[E0599]: no variant or associated item named `CircuitBreakerCooldown` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1965:42
-     |
-1965 |             return Err(crate::ErrorCode::CircuitBreakerCooldown.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1972:28
-     |
-1972 |         if current_time >= window_end {
-     |            ------------    ^^^^^^^^^^ expected `i64`, found `u64`
-     |            |
-     |            expected because this is `i64`
-     |
-help: you can convert a `u64` to an `i64` and panic if the converted value doesn't fit
-     |
-1972 |         if current_time >= window_end.try_into().unwrap() {
-     |                                      ++++++++++++++++++++
-
-error[E0308]: mismatched types
-    --> programs/hoe-dex-protection/src/lib.rs:1974:35
-     |
-1974 |             self.reset_rate_limit(current_time)?;
-     |                  ---------------- ^^^^^^^^^^^^ expected `u64`, found `i64`
-     |                  |
-     |                  arguments to this method are incorrect
-     |
-note: method defined here
-    --> programs/hoe-dex-protection/src/lib.rs:1545:12
-     |
-1545 |     pub fn reset_rate_limit(&mut self, current_time: u64) -> Result<()> {
-     |            ^^^^^^^^^^^^^^^^            -----------------
-help: you can convert an `i64` to a `u64` and panic if the converted value doesn't fit
-     |
-1974 |             self.reset_rate_limit(current_time.try_into().unwrap())?;
-     |                                               ++++++++++++++++++++
-
-error[E0599]: no variant or associated item named `RateLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1978:42
-     |
-1978 |             return Err(crate::ErrorCode::RateLimitExceeded.into());
-     |                                          ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1986:38
-     |
-1986 |             error!(crate::ErrorCode::Overflow)
-     |                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
-
-error[E0609]: no field `daily_limit` on type `types::VolumeSettings`
-    --> programs/hoe-dex-protection/src/lib.rs:1988:37
-     |
-1988 |         if new_volume > self.volume.daily_limit {
-     |                                     ^^^^^^^^^^^ unknown field
-     |
-     = note: available fields are: `volume_24h`, `last_update`, `last_decay`, `max_daily`, `current_volume` ... and 3 others
-
-error[E0609]: no field `daily_limit` on type `types::VolumeSettings`
-    --> programs/hoe-dex-protection/src/lib.rs:1989:82
-     |
-1989 |             msg!("Daily volume limit exceeded: {} > {}", new_volume, self.volume.daily_limit);
-     |                                                                                  ^^^^^^^^^^^ unknown field
-     |
-     = note: available fields are: `volume_24h`, `last_update`, `last_decay`, `max_daily`, `current_volume` ... and 3 others
+   --> programs/hoe-dex-protection/src/lib.rs:498:86
+    |
+498 |         let new_volume = self.volume.volume_24h.checked_add(amount).ok_or(ErrorCode::Overflow)?;
+    |                                                                                      ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
 error[E0599]: no variant or associated item named `DailyVolumeLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
-    --> programs/hoe-dex-protection/src/lib.rs:1990:42
-     |
-1990 |             return Err(crate::ErrorCode::DailyVolumeLimitExceeded.into());
-     |                                          ^^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+   --> programs/hoe-dex-protection/src/lib.rs:501:35
+    |
+501 |             return Err(ErrorCode::DailyVolumeLimitExceeded.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0599]: the method `to_account_info` exists for reference `&PoolState`, but its trait bounds were not satisfied
-    --> programs/hoe-dex-protection/src/lib.rs:1998:14
-     |
-1360 | pub struct PoolState {
-     | -------------------- doesn't satisfy `PoolState: anchor_lang::ToAccountInfo<'_>` or `_: AsRef<AccountInfo<'_>>`
-...
-1998 |         self.to_account_info().key()
-     |              ^^^^^^^^^^^^^^^ method cannot be called on `&PoolState` due to unsatisfied trait bounds
-     |
-     = note: the following trait bounds were not satisfied:
-             `PoolState: AsRef<anchor_lang::prelude::AccountInfo<'_>>`
-             which is required by `PoolState: anchor_lang::ToAccountInfo<'_>`
-             `&PoolState: AsRef<anchor_lang::prelude::AccountInfo<'_>>`
-             which is required by `&PoolState: anchor_lang::ToAccountInfo<'_>`
-note: the trait `AsRef` must be implemented
-    --> /home/runner/work/platform-tools/platform-tools/out/rust/library/core/src/convert/mod.rs:218:1
-     = help: items from traits can only be used if the trait is implemented and in scope
-     = note: the following traits define an item `to_account_info`, perhaps you need to implement one of them:
-             candidate #1: `anchor_lang::ToAccountInfo`
-             candidate #2: `anchor_lang::prelude::SolanaSysvar`
+error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:512:35
+    |
+512 |             return Err(ErrorCode::InvalidTimestamp.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-warning: unused variable: `pool_authority`
-    --> programs/hoe-dex-protection/src/lib.rs:1341:10
-     |
-1341 |     let (pool_authority, bump) = derive_pool_authority(&pool_state.key(), program_id)?;
-     |          ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_pool_authority`
-     |
-     = note: `#[warn(unused_variables)]` on by default
+error[E0599]: no variant or associated item named `VolumeLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:515:35
+    |
+515 |             return Err(ErrorCode::VolumeLimitExceeded.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0515]: cannot return value referencing temporary value
-    --> programs/hoe-dex-protection/src/lib.rs:1347:5
-     |
-1344 |           pool_state.key().as_ref(),
-     |           ---------------- temporary value created here
-...
-1347 | /     Ok(CpiContext::new_with_signer(
-1348 | |         remaining_accounts[0].clone(), // token_program
-1349 | |         Transfer {
-1350 | |             from: remaining_accounts[1].clone(),
-...    |
-1354 | |         seeds,
-1355 | |     ))
-     | |______^ returns a value referencing data owned by the current function
+error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:523:35
+    |
+523 |             return Err(ErrorCode::InvalidTimestamp.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0515]: cannot return value referencing temporary value
-    --> programs/hoe-dex-protection/src/lib.rs:1347:5
-     |
-1345 |           &[bump],
-     |            ------ temporary value created here
-1346 |       ]];
-1347 | /     Ok(CpiContext::new_with_signer(
-1348 | |         remaining_accounts[0].clone(), // token_program
-1349 | |         Transfer {
-1350 | |             from: remaining_accounts[1].clone(),
-...    |
-1354 | |         seeds,
-1355 | |     ))
-     | |______^ returns a value referencing data owned by the current function
+error[E0599]: no variant or associated item named `RateLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:529:35
+    |
+529 |             return Err(ErrorCode::RateLimitExceeded.into());
+    |                                   ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0515]: cannot return value referencing temporary value
-    --> programs/hoe-dex-protection/src/lib.rs:1347:5
-     |
-1342 |       let seeds: &[&[&[u8]]] = &[&[
-     |  _________________________________-
-1343 | |         b"pool_authority".as_ref(),
-1344 | |         pool_state.key().as_ref(),
-1345 | |         &[bump],
-1346 | |     ]];
-     | |_____- temporary value created here
-1347 | /     Ok(CpiContext::new_with_signer(
-1348 | |         remaining_accounts[0].clone(), // token_program
-1349 | |         Transfer {
-1350 | |             from: remaining_accounts[1].clone(),
-...    |
-1354 | |         seeds,
-1355 | |     ))
-     | |______^ returns a value referencing data owned by the current function
+error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:537:35
+    |
+537 |             return Err(ErrorCode::InvalidTimestamp.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-error[E0515]: cannot return value referencing temporary value
-    --> programs/hoe-dex-protection/src/lib.rs:1347:5
-     |
-1342 |       let seeds: &[&[&[u8]]] = &[&[
-     |  _______________________________-
-1343 | |         b"pool_authority".as_ref(),
-1344 | |         pool_state.key().as_ref(),
-1345 | |         &[bump],
-1346 | |     ]];
-     | |______- temporary value created here
-1347 | /     Ok(CpiContext::new_with_signer(
-1348 | |         remaining_accounts[0].clone(), // token_program
-1349 | |         Transfer {
-1350 | |             from: remaining_accounts[1].clone(),
-...    |
-1354 | |         seeds,
-1355 | |     ))
-     | |______^ returns a value referencing data owned by the current function
+error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:543:95
+    |
+543 |         self.rate_limit.max_calls = self.rate_limit.max_calls.checked_add(1).ok_or(ErrorCode::Overflow)?;
+    |                                                                                               ^^^^^^^^ variant or associated item not found in `ErrorCode`
 
-Some errors have detailed explanations: E0062, E0063, E0124, E0277, E0308, E0412, E0422, E0425, E0432...
-For more information about an error, try `rustc --explain E0062`.
+error[E0599]: no variant or associated item named `RateLimitExceeded` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:545:35
+    |
+545 |             return Err(ErrorCode::RateLimitExceeded.into());
+    |                                   ^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:553:35
+    |
+553 |             return Err(ErrorCode::InvalidTimestamp.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `CircuitBreakerCooldown` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:558:35
+    |
+558 |             return Err(ErrorCode::CircuitBreakerCooldown.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `CircuitBreakerTriggered` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:561:35
+    |
+561 |             return Err(ErrorCode::CircuitBreakerTriggered.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `InvalidTimestamp` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:569:35
+    |
+569 |             return Err(ErrorCode::InvalidTimestamp.into());
+    |                                   ^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:571:120
+    |
+571 |         self.circuit_breaker.current_amount = self.circuit_breaker.current_amount.checked_add(amount).ok_or(ErrorCode::Overflow)?;
+    |                                                                                                                        ^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `CircuitBreakerTriggered` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:573:35
+    |
+573 |             return Err(ErrorCode::CircuitBreakerTriggered.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `InvalidFeeTier` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:585:31
+    |
+585 |             .ok_or(ErrorCode::InvalidFeeTier)?;
+    |                               ^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:588:31
+    |
+588 |             .ok_or(ErrorCode::Overflow)?
+    |                               ^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `Overflow` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:590:31
+    |
+590 |             .ok_or(ErrorCode::Overflow)?;
+    |                               ^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `InvalidFeeTier` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:597:35
+    |
+597 |             return Err(ErrorCode::InvalidFeeTier.into());
+    |                                   ^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `TooManyFeeTiers` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:600:35
+    |
+600 |             return Err(ErrorCode::TooManyFeeTiers.into());
+    |                                   ^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `InvalidFeeTierSpacing` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:605:39
+    |
+605 |                 return Err(ErrorCode::InvalidFeeTierSpacing.into());
+    |                                       ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `FeeTooLow` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:608:39
+    |
+608 |                 return Err(ErrorCode::FeeTooLow.into());
+    |                                       ^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `FeeTooHigh` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:611:39
+    |
+611 |                 return Err(ErrorCode::FeeTooHigh.into());
+    |                                       ^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `DuplicateFeeTierThreshold` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:614:39
+    |
+614 |                 return Err(ErrorCode::DuplicateFeeTierThreshold.into());
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `PoolPaused` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:630:46
+    |
+630 |         require!(!self.is_paused, ErrorCode::PoolPaused);
+    |                                              ^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `PoolNotPaused` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:636:45
+    |
+636 |         require!(self.is_paused, ErrorCode::PoolNotPaused);
+    |                                             ^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `InvalidTokenAccount` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:652:35
+    |
+652 |             return Err(ErrorCode::InvalidTokenAccount.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `TokenAccountDelegated` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:655:35
+    |
+655 |             return Err(ErrorCode::TokenAccountDelegated.into());
+    |                                   ^^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no method named `ok_or` found for tuple `(anchor_lang::prelude::Pubkey, u8)` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:663:14
+    |
+662 | /         Pubkey::find_program_address(&[b"pool_authority", self.to_account_info().key.as_ref()], program_id)
+663 | |             .ok_or(ErrorCode::InvalidPoolAuthority)
+    | |             -^^^^^ method not found in `(Pubkey, u8)`
+    | |_____________|
+    | 
+
+error[E0599]: no variant or associated item named `InvalidPoolAuthority` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:663:31
+    |
+663 |             .ok_or(ErrorCode::InvalidPoolAuthority)
+    |                               ^^^^^^^^^^^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0599]: no variant or associated item named `PoolPaused` found for enum `anchor_lang::error::ErrorCode` in the current scope
+   --> programs/hoe-dex-protection/src/lib.rs:675:35
+    |
+675 |             return Err(ErrorCode::PoolPaused.into());
+    |                                   ^^^^^^^^^^ variant or associated item not found in `ErrorCode`
+
+error[E0433]: failed to resolve: use of undeclared type `ParameterUpdate`
+   --> programs/hoe-dex-protection/src/lib.rs:280:13
+    |
+280 |             ParameterUpdate::Protection(protection_settings) => {
+    |             ^^^^^^^^^^^^^^^ use of undeclared type `ParameterUpdate`
+
+error[E0433]: failed to resolve: use of undeclared type `ParameterUpdate`
+   --> programs/hoe-dex-protection/src/lib.rs:274:13
+    |
+274 |             ParameterUpdate::Trade(trade_settings) => {
+    |             ^^^^^^^^^^^^^^^ use of undeclared type `ParameterUpdate`
+
+error[E0433]: failed to resolve: use of undeclared type `ParameterUpdate`
+   --> programs/hoe-dex-protection/src/lib.rs:306:13
+    |
+306 |             ParameterUpdate::State(state_settings) => {
+    |             ^^^^^^^^^^^^^^^ use of undeclared type `ParameterUpdate`
+
+error[E0433]: failed to resolve: use of undeclared type `ParameterUpdate`
+   --> programs/hoe-dex-protection/src/lib.rs:300:13
+    |
+300 |             ParameterUpdate::Fee(fee_settings) => {
+    |             ^^^^^^^^^^^^^^^ use of undeclared type `ParameterUpdate`
+
+Some errors have detailed explanations: E0412, E0422, E0432, E0433, E0599.
+For more information about an error, try `rustc --explain E0412`.
 warning: `hoe-dex-protection` (lib) generated 2 warnings
-error: could not compile `hoe-dex-protection` (lib) due to 229 previous errors; 2 warnings emitted
+error: could not compile `hoe-dex-protection` (lib) due to 213 previous errors; 2 warnings emitted
