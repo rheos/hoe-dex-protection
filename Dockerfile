@@ -13,6 +13,10 @@ RUN curl -fsSL https://nodejs.org/dist/v20.18.0/node-v20.18.0-linux-x64.tar.xz |
     ln -s /usr/local/node-v20.18.0-linux-x64/bin/npm /usr/local/bin/npm && \
     /usr/local/bin/npm install -g yarn
 
+# Install Rust 1.81.0 and bpfel-unknown-unknown target
+RUN rustup toolchain install 1.81.0 && \
+    rustup component add rust-std --target bpfel-unknown-unknown --toolchain 1.81.0
+
 # Install Anchor CLI 0.31.1
 RUN cargo install --git https://github.com/coral-xyz/anchor --tag v0.31.1 anchor-cli --locked
 
