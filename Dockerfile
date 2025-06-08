@@ -4,10 +4,10 @@ FROM backpackapp/build:v0.31.0
 # Set working directory
 WORKDIR /app
 
-# Update Node.js to version >=20.18.0
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get update && \
-    apt-get install -y nodejs && \
+# Install Node.js 20.18.0 using binary
+RUN curl -fsSL https://nodejs.org/dist/v20.18.0/node-v20.18.0-linux-x64.tar.xz | tar -xJ -C /usr/local && \
+    ln -s /usr/local/node-v20.18.0-linux-x64/bin/node /usr/local/bin/node && \
+    ln -s /usr/local/node-v20.18.0-linux-x64/bin/npm /usr/local/bin/npm && \
     npm install -g yarn
 
 # Copy project files
