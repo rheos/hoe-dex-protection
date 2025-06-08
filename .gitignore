@@ -6,4 +6,3 @@ target
 node_modules
 test-ledger
 .yarn
-build_errors.log
