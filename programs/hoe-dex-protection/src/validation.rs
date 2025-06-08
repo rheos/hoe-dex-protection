@@ -17,6 +17,12 @@ pub fn validate_trade_parameters(pool_state: &Account<PoolState>, amount: u64, c
     pool_state.check_volume_limit(current_time)?;
     pool_state.check_rate_limit(amount, current_time)?;
     pool_state.check_circuit_breaker(amount, current_time)?;
+    if pool_state.protection.blacklist_enabled {
+        require!(
+            !pool_state.blacklist.contains(&ctx.accounts.user.key()),
+            ErrorCode::Unauthorized
+        );
+    }
     Ok(())
 }
 

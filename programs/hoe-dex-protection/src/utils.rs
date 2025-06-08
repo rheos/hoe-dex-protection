@@ -1,21 +1,34 @@
 use anchor_lang::prelude::*;
-use crate::types::*;
+use crate::constants::*;
 use crate::errors::ErrorCode;
+use crate::types::*;
 
 pub fn process_blacklist_operations(
     pool_state: &mut Account<PoolState>,
     traders: Vec<Pubkey>,
     operation: BlacklistOperation,
 ) -> Result<()> {
+    require!(
+        pool_state.protection.blacklist_enabled,
+        ErrorCode::Unauthorized
+    );
+    require!(
+        traders.len() <= BATCH_BLACKLIST_MAX_SIZE,
+        ErrorCode::TooManyFeeTiers
+    );
     match operation {
         BlacklistOperation::Add => {
+            require!(
+                pool_state.blacklist.len() + traders.len() <= MAX_BLACKLIST_SIZE,
+                ErrorCode::TooManyFeeTiers
+            );
             for trader in traders {
-                // Add trader to blacklist (simplified; assumes storage elsewhere)
+                pool_state.blacklist.insert(trader);
             }
         }
         BlacklistOperation::Remove => {
             for trader in traders {
-                // Remove trader from blacklist (simplified; assumes storage elsewhere)
+                pool_state.blacklist.remove(&trader);
             }
         }
     }
@@ -29,7 +42,7 @@ pub fn create_cpi_context<'a, 'b, 'c, 'info>(
 ) -> Result<CpiContext<'a, 'b, 'c, 'info, Transfer<'info>>> {
     let (pool_authority, bump) = pool_state.get_pool_authority(program_id)?;
     let seeds = &[
-        b"pool_authority".as_ref(),
+        POOL_ID_SEED.as_ref(),
         pool_state.to_account_info().key.as_ref(),
         &[bump],
     ];

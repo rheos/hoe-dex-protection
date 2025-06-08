@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use std::collections::HashSet;
 
 // Fee tier for dynamic fee calculation
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
@@ -112,6 +113,7 @@ pub struct PoolState {
     pub protection: ProtectionSettings,
     pub fee_tiers: Vec<FeeTier>,
     pub last_update: i64,
+    pub blacklist: HashSet<Pubkey>,
 }
 
 impl Default for PoolState {
@@ -133,6 +135,7 @@ impl Default for PoolState {
             protection: ProtectionSettings::default(),
             fee_tiers: vec![],
             last_update: 0,
+            blacklist: HashSet::new(),
         }
     }
 }

@@ -17,12 +17,12 @@ pub const PENDING_UPDATE_SEED: &[u8] = b"pending_update";
 // Fee mode constants for tracking fee application
 pub const FEE_MODE_NONE: u8 = 0;
 pub const FEE_MODE_EARLY_TRADE: u8 = 1;
-pub const FEE_MODE_TIER_BASED: u8 = 1;
-pub const FEE_MODE_VOLUME_BASED: u8 = 2;
-pub const FEE_MODE_CIRCUIT_BREAKER: u8 = 3;
+pub const FEE_MODE_TIER_BASED: u8 = 2;
+pub const FEE_MODE_VOLUME_BASED: u8 = 3;
+pub const FEE_MODE_CIRCUIT_BREAKER: u8 = 4;
 
 // --- Limits ---
-pub const MAX_FEE_TIERS: usize = 100;
+pub const MAX_FEE_TIERS: usize = 10;
 pub const MAX_BLACKLIST_SIZE: usize = 1000;
 pub const MAX_PENDING_UPDATE_SIZE: usize = 100;
 pub const BATCH_BLACKLIST_MAX_SIZE: usize = 50;
@@ -80,4 +80,4 @@ pub const MAX_TRADE_SIZE_DECAY_RESET: u64 = 3600; // 1 hour decay reset
 pub const MAX_HOURLY_TRADES_DECAY_RESET: u64 = 3600; // 1 hour decay reset
 pub const MAX_HOURLY_VOLUME_DECAY_RESET: u64 = 3600; // 1 hour decay reset
 pub const MAX_DAILY_VOLUME_DECAY_RESET: u64 = 86400; // 24 hour decay reset
-pub const MAX_PRICE_IMPACT_DECAY_RESET: u64 = 3600; // 1 hour decay reset 
+pub const MAX_PRICE_IMPACT_DECAY_RESET: u64 = 3600; // 1 hour decay reset
