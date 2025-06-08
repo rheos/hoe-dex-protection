@@ -24,3 +24,4 @@ EXPOSE 8899
 
 # Command to keep container running or run tests
 CMD ["bash"]
+
