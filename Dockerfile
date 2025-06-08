@@ -1,14 +1,11 @@
-# Use backpackapp/build:v0.30.1 as the base image
-FROM backpackapp/build:v0.30.1
+# Use backpackapp/build:v0.31.1 as the base image
+FROM backpackapp/build:v0.31.1
 
 # Set working directory
 WORKDIR /app
 
-# Install Anchor CLI 0.31.1
-RUN cargo install --git https://github.com/coral-xyz/anchor --tag v0.31.1 anchor-cli --locked
-
-# Update PATH
-ENV PATH="/root/.cargo/bin:$PATH"
+# Ensure Rust has bpfel-unknown-unknown target
+RUN rustup target add bpfel-unknown-unknown
 
 # Copy project files
 COPY . .
