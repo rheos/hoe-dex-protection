@@ -13,8 +13,11 @@ RUN curl -fsSL https://nodejs.org/dist/v20.18.0/node-v20.18.0-linux-x64.tar.xz |
     ln -s /usr/local/node-v20.18.0-linux-x64/bin/npm /usr/local/bin/npm && \
     /usr/local/bin/npm install -g yarn
 
+# Install Anchor CLI 0.31.1
+RUN cargo install --git https://github.com/coral-xyz/anchor --tag v0.31.1 anchor-cli --locked
+
 # Update PATH
-ENV PATH="/usr/local/node-v20.18.0-linux-x64/bin:/usr/local/bin:$PATH"
+ENV PATH="/usr/local/node-v20.18.0-linux-x64/bin:/usr/local/bin:/root/.cargo/bin:$PATH"
 
 # Copy project files
 COPY . .
