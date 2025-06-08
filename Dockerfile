@@ -11,10 +11,10 @@ RUN rm -rf /root/.nvm /usr/bin/node /usr/bin/npm /usr/local/bin/node /usr/local/
 RUN curl -fsSL https://nodejs.org/dist/v20.18.0/node-v20.18.0-linux-x64.tar.xz | tar -xJ -C /usr/local && \
     ln -s /usr/local/node-v20.18.0-linux-x64/bin/node /usr/local/bin/node && \
     ln -s /usr/local/node-v20.18.0-linux-x64/bin/npm /usr/local/bin/npm && \
-    npm install -g yarn
+    /usr/local/bin/npm install -g yarn
 
 # Update PATH
-ENV PATH="/usr/local/bin:$PATH"
+ENV PATH="/usr/local/node-v20.18.0-linux-x64/bin:/usr/local/bin:$PATH"
 
 # Copy project files
 COPY . .
