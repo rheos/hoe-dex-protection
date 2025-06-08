@@ -5,7 +5,7 @@
       "test": "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
     },
     "dependencies": {
-      "@solana/codecs-numbers": "^1.0.0",
+      "@solana/codecs-numbers": "^2.0.0",
       "@solana/web3.js": "^1.95.0"
     },
     "devDependencies": {
