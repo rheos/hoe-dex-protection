@@ -1,11 +1,14 @@
-# Use backpackapp/build:v0.31.1 as the base image
-FROM backpackapp/build:v0.31.1
+# Use backpackapp/build:v0.31.0 as the base image
+FROM backpackapp/build:v0.31.0
 
 # Set working directory
 WORKDIR /app
 
 # Ensure Rust has bpfel-unknown-unknown target
 RUN rustup target add bpfel-unknown-unknown
+
+# Update PATH
+ENV PATH="/root/.cargo/bin:$PATH"
 
 # Copy project files
 COPY . .
